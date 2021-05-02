@@ -1,7 +1,45 @@
 #ifndef SHADER_BRDF_INCLUDED
 #define SHADER_BRDF_INCLUDED
 
+// éQçlï∂å£
+// * Real Shading inUnreal Engine 4
+//   https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
+
 #include <Shader/Math.fxsub>
+
+float3 DiffuseBRDF(float3 albedo) {
+	return INV_PI * albedo;
+}
+
+float3 SpecularD(float dotNH, float roughness) {
+	float a = sq(roughness);
+	return INV_PI * sq(a) / sq(sq(dotNH) * (sq(a) - 1.0) + 1.0);
+}
+
+float3 SpecularG(float dotNL, float dotNV, float roughness) {
+	float k = sq(roughness + 1.0);
+	float gl = dotNL / (dotNL * (1.0 - k) + k);
+	float gv = dotNV / (dotNV * (1.0 - k) + k);
+	return gl * gv;
+}
+
+float3 SpecularF(float dotVH, float3 f0) {
+	return f0 + (1.0 - f0) * exp2((-5.55473 * dotVH - 6.98316) * dotVH);
+}
+
+float3 SpecularBRDF(
+	float dotNL,
+	float dotNV,
+	float dotNH,
+	float dotVH,
+	float roughness,
+	float3 f0
+) {
+	return SpecularD(dotNH, roughness)
+	     * SpecularF(dotVH, f0)
+		 * SpecularG(dotNL, dotNV, roughness)
+		 / (4.0 * dotNL * dotNV);
+}
 
 // Half-Lambert diffuse
 float3 HalfLambertDiffuse(float dotNL, float3 albedo) {

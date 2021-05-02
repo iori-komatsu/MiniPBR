@@ -23,7 +23,7 @@ float3   MaterialSpecular  : SPECULAR < string Object = "Geometry"; >;
 float    SpecularPower     : SPECULARPOWER < string Object = "Geometry"; >;
 // ライト色
 float3   LightAmbient      : AMBIENT < string Object = "Light"; >;
-static float3 LightColor   = LightAmbient * 4;
+static float3 LightColor   = srgb2linear(LightAmbient) * 4.0;
 static float3 AmbientColor = LightColor * AmbientCoeff;
 
 // テクスチャ材質モーフ値
@@ -62,13 +62,13 @@ void MainVS(
 	out float4 oLightClipPos : TEXCOORD0,
 	out float2 oTexCoord : TEXCOORD1,
 	out float3 oNormal : TEXCOORD2,
-	out float3 oEye : TEXCOORD3
+	out float3 oViewDir : TEXCOORD3
 ) {
 	// カメラ視点のワールドビュー射影変換
 	oPos = mul(pos, WorldViewProjMatrix);
 
 	// カメラとの相対位置
-	oEye = CameraPos - mul(pos, WorldMatrix).rgb;
+	oViewDir = CameraPos - mul(pos, WorldMatrix).rgb;
 	// 頂点法線
 	oNormal = normalize(mul(normal, (float3x3)WorldMatrix));
 
@@ -110,25 +110,25 @@ float3 CalculateLight(
 		// セルフシャドウ mode1
 		comp = 1 - saturate(lightDepth * SKII1 - 0.3);
 	}
-	return srgb2linear(lerp(0, LightColor, comp));
+	return lerp(0, LightColor, comp);
 }
 
 float3 ShaderSurface(
 	float3 baseColor,
 	float3 normal,
-	float3 eye,
+	float3 viewDir,
 	float3 lightColor
 ) {
-	// Blinn-Phong specular
-	float3 h = normalize(eye + -LightDir);
-	float dotNH = dot(h, normal);
-	float3 specular = BlinnPhongSpecular(dotNH, MaterialSpecular, SpecularPower);
+	float3 h = normalize(viewDir + -LightDir);
+	float dotNL = saturate(dot(normal, -LightDir));
+	float dotNV = saturate(dot(normal, viewDir));
+	float dotNH = saturate(dot(normal, h));
+	float dotVH = saturate(dot(viewDir, h));
 
-	// Half Lambert diffuse
-	float dotNL = dot(normal, -LightDir);
-	float3 diffuse = HalfLambertDiffuse(dotNL, baseColor);
+	float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, 0.5, 0.03);
+	float3 fDiffuse = DiffuseBRDF(baseColor);
 
-	return (specular + diffuse) * lightColor + AmbientColor * baseColor;
+	return (fSpecular + fDiffuse) * dotNL * lightColor + AmbientColor * baseColor;
 }
 
 float4 BaseColor(float2 tex, uniform bool useTexture);
@@ -138,13 +138,13 @@ float4 MainPS(
 	float4 lightClipPos : TEXCOORD0,
 	float2 tex : TEXCOORD1,
 	float3 normal : TEXCOORD2,
-	float3 eye : TEXCOORD3,
+	float3 viewDir : TEXCOORD3,
 	uniform bool useTexture,
 	uniform bool selfShadow
 ) : COLOR0 {
 	float4 baseColor = BaseColor(tex, useTexture);
 	float3 lightColor = CalculateLight(lightClipPos, selfShadow);
-	float3 outColor = ShaderSurface(baseColor.rgb, normalize(normal), normalize(eye), lightColor);
+	float3 outColor = ShaderSurface(baseColor.rgb, normalize(normal), normalize(viewDir), lightColor);
 	return float4(linear2srgb(outColor), baseColor.a);
 }
 
