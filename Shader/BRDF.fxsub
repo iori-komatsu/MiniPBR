@@ -61,8 +61,8 @@ float3 SpecularBRDF(
 ) {
 	return SpecularD(dotNH, roughness)
 	     * SpecularF(dotVH, f0)
-		 * SpecularG(dotNL, dotNV, roughness)
-		 / (4.0 * dotNV);
+	     * SpecularG(dotNL, dotNV, roughness)
+	     / (4.0 * dotNV);
 }
 
 // Blinn-Phong specular
