@@ -1,0 +1,12 @@
+#ifndef SHADER_COLOR_SPACE_INCLUDED
+#define SHADER_COLOR_SPACE_INCLUDED
+
+float3 srgb2linear(float3 sRGB) {
+    return sRGB < 0.04045 ? sRGB/12.92 : pow((sRGB+0.055) / 1.055, 2.4);
+}
+
+float3 linear2srgb(float3 rgb) {
+    return rgb < 0.0031308 ? rgb*12.92 : pow(rgb, 1.0/2.4) * 1.055 - 0.055;
+}
+
+#endif

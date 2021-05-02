@@ -1,0 +1,9 @@
+#ifndef SHADER_MATH_INCLUDED
+#define SHADER_MATH_INCLUDED
+
+const float PI = 3.141592653589793;
+const float TAU = 6.283185307179586;
+const float INV_PI = 0.3183098861837907;
+const float INV_TAU = 0.15915494309189535;
+
+#endif
