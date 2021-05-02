@@ -7,8 +7,18 @@
 
 #include <Shader/Math.fxsub>
 
-float3 DiffuseBRDF(float3 albedo) {
-	return INV_PI * albedo;
+// LambertŠgUBRDF
+// ‚½‚¾‚µ dotNL ‚ğŠ|‚¯‚Ä•Ô‚·B
+float3 LambertDiffuseBRDF(float dotNL, float3 albedo) {
+	return INV_PI * albedo * dotNL;
+}
+
+// Half-Lambert ‚ğg‚Á‚½ŠgUBRDF
+// ‚½‚¾‚µ dotNL ‚ğŠ|‚¯‚Ä•Ô‚·B
+float3 HalfLambertDiffuseBRDF(float dotNL, float3 albedo) {
+	const float invZ = 3.0 / (4.0 * PI);
+	float c = dotNL * 0.5 + 0.5;
+	return invZ * c * c * albedo;
 }
 
 float3 SpecularD(float dotNH, float roughness) {
@@ -27,6 +37,8 @@ float3 SpecularF(float dotVH, float3 f0) {
 	return f0 + (1.0 - f0) * exp2((-5.55473 * dotVH - 6.98316) * dotVH);
 }
 
+// Cook-Torrance ‚ÌƒXƒyƒLƒ…ƒ‰BRDF
+// ‚½‚¾‚µ dotNL ‚ğŠ|‚¯‚Ä•Ô‚·B
 float3 SpecularBRDF(
 	float dotNL,
 	float dotNV,
@@ -38,14 +50,7 @@ float3 SpecularBRDF(
 	return SpecularD(dotNH, roughness)
 	     * SpecularF(dotVH, f0)
 		 * SpecularG(dotNL, dotNV, roughness)
-		 / (4.0 * dotNL * dotNV);
-}
-
-// Half-Lambert diffuse
-float3 HalfLambertDiffuse(float dotNL, float3 albedo) {
-	const float invZ = 3.0 / (4.0 * PI);
-	float c = dotNL * 0.5 + 0.5;
-	return invZ * c * c * albedo;
+		 / (4.0 * dotNV);
 }
 
 // Blinn-Phong specular
