@@ -125,8 +125,8 @@ float3 ShaderSurface(
 	float dotNH = saturate(dot(normal, h));
 	float dotVH = saturate(dot(viewDir, h));
 
-	float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, 0.5, 0.03);
-	float3 fDiffuse = HalfLambertDiffuseBRDF(dotNL, baseColor);
+	float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, 0.4, 0.04);
+	float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, baseColor, float3(1.9, 1.7, 1.7));
 
 	return (fSpecular + fDiffuse) * lightColor + AmbientColor * baseColor;
 }

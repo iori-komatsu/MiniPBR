@@ -21,6 +21,17 @@ float3 HalfLambertDiffuseBRDF(float dotNL, float3 albedo) {
 	return invZ * c * c * albedo;
 }
 
+float3 SchlickF90(float cosine, float3 f90) {
+	float c = 1.0 - cosine;
+	return 1.0 + (f90 - 1.0) * (c*c*c*c*c);
+}
+
+float3 DiffuseBRDF(float dotNL, float dotNV, float3 albedo, float3 f90) {
+	// Half-Lambert Ç∆ Burley Diffuse ÇëgÇ›çáÇÌÇπÇÈ
+	float3 base = HalfLambertDiffuseBRDF(dotNL, albedo);
+	return base * SchlickF90(dotNL, f90) * SchlickF90(dotNV, f90);
+}
+
 float3 SpecularD(float dotNH, float roughness) {
 	float a = sq(roughness);
 	return INV_PI * sq(a) / sq(sq(dotNH) * (sq(a) - 1.0) + 1.0);
