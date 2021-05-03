@@ -97,6 +97,10 @@ float CastShadow(float4 lightClipPos, uniform bool selfShadow) {
 		return 1.0;
 	}
 
+	// 参考文献:
+	// * opengl-tutorial "チュートリアル16：シャドウマッピング"
+	//   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
+
 	float objectDepth = ndcPos.z;
 
 	const int N_SAMPLES = 5;
