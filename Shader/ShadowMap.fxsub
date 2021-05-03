@@ -1,0 +1,30 @@
+#ifndef SHADER_SHADOW_MAP_INCLUDED
+#define SHADER_SHADOW_MAP_INCLUDED
+
+#include <Shader/Uniform.fxsub>
+
+float3 ShadowMapCoord(float3 worldPos) {
+    const float maxShadowDepth = 50;
+
+    float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectMatrix._33);
+
+    // ライトから見た座標系に変換するための行列を作る
+    float3 axisZ = LightDir;
+    float3 axisX = cross(cameraDir, axisZ);
+    float3 axisY = cross(axisZ, axisX);
+    float3x3 lightMatrix = transpose(float3x3(axisX, axisY, axisZ));
+
+    // ShadowMap の中心となる点
+    float3 origin = CameraPos + cameraDir * maxShadowDepth * 0.5;
+
+    float3 lightPos = mul(worldPos.xyz - origin, lightMatrix);
+
+    return float3(
+        // cameraPos がちょうど ShadowMap の端に位置するようにスケーリングする
+        lightPos.xy * dot(axisY, cameraDir) / (maxShadowDepth * 0.5),
+        // origin の z が 0.5 になるように平行移動し、クリップ座標に変換するためにスケーリングする
+        (lightPos.z + maxShadowDepth * 0.5) / maxShadowDepth
+    );
+}
+
+#endif

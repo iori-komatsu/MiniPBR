@@ -3,32 +3,14 @@
 
 #include <Shader/ColorSpace.fxsub>
 #include <Shader/BRDF.fxsub>
+#include <Shader/Uniform.fxsub>
+#include <Shader/ShadowMap.fxsub>
 
 // LightColor に対する AmbientColor の大きさ
 static const float AmbientCoeff = 0.2;
 
-// 座法変換行列
-float4x4 WorldViewProjMatrix      : WORLDVIEWPROJECTION;
-float4x4 WorldMatrix              : WORLD;
-float4x4 ViewMatrix               : VIEW;
-float4x4 LightWorldViewProjMatrix : WORLDVIEWPROJECTION < string Object = "Light"; >;
-
-float3   LightDir  : DIRECTION < string Object = "Light"; >;
-float3   CameraPos : POSITION  < string Object = "Camera"; >;
-
-// マテリアル色
-float3   MaterialAmbient   : AMBIENT  < string Object = "Geometry"; >;
-float4   MaterialDiffuse   : DIFFUSE  < string Object = "Geometry"; >;
-float3   MaterialSpecular  : SPECULAR < string Object = "Geometry"; >;
-float    SpecularPower     : SPECULARPOWER < string Object = "Geometry"; >;
-// ライト色
-float3   LightAmbient      : AMBIENT < string Object = "Light"; >;
 static float3 LightColor   = srgb2linear(LightAmbient) * 4.0;
 static float3 AmbientColor = LightColor * AmbientCoeff;
-
-// テクスチャ材質モーフ値
-float4   TextureAddValue : ADDINGTEXTURE;
-float4   TextureMulValue : MULTIPLYINGTEXTURE;
 
 bool     parthf;   // パースペクティブフラグ
 bool     transp;   // 半透明フラグ
@@ -46,10 +28,20 @@ sampler ObjectTextureSampler = sampler_state {
 	ADDRESSV  = WRAP;
 };
 
+shared texture2D ShadowMap : OFFSCREENRENDERTARGET;
+sampler2D ShadowSamp = sampler_state {
+    texture   = <ShadowMap>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+
 //---------------------------------------------------------------------------------------------
 
-// シャドウバッファのサンプラ。"register(s0)"なのはMMDがs0を使っているから
-sampler ShadowBufferSampler : register(s0);
+//// シャドウバッファのサンプラ。"register(s0)"なのはMMDがs0を使っているから
+//sampler ShadowBufferSampler : register(s0);
 
 // 頂点シェーダ
 void MainVS(
@@ -59,7 +51,7 @@ void MainVS(
 	in uniform bool useTexture,
 	in uniform bool selfShadow,
 	out float4 oPos : POSITION,
-	out float4 oLightClipPos : TEXCOORD0,
+	out float3 oWorldPos : TEXCOORD0,
 	out float2 oTexCoord : TEXCOORD1,
 	out float3 oNormal : TEXCOORD2,
 	out float3 oViewDir : TEXCOORD3
@@ -67,29 +59,25 @@ void MainVS(
 	// カメラ視点のワールドビュー射影変換
 	oPos = mul(pos, WorldViewProjMatrix);
 
+	// ワールド座標
+	oWorldPos = mul(pos, WorldMatrix).xyz;
+
 	// カメラとの相対位置
 	oViewDir = CameraPos - mul(pos, WorldMatrix).rgb;
 	// 頂点法線
 	oNormal = normalize(mul(normal, (float3x3)WorldMatrix));
-
-	if (selfShadow) {
-		// ライト視点によるワールドビュー射影変換
-		oLightClipPos = mul(pos, LightWorldViewProjMatrix);
-	} else {
-		oLightClipPos = (float4)0;
-	}
 
 	// テクスチャ座標
 	oTexCoord = texCoord;
 }
 
 // ライトの visibility を返す。
-float CastShadow(float4 lightClipPos, uniform bool selfShadow) {
+float CastShadow(float3 worldPos, uniform bool selfShadow) {
 	if (!selfShadow) {
 		return 1.0;
 	}
 
-	float3 ndcPos = lightClipPos.xyz / lightClipPos.w;
+	float3 ndcPos = ShadowMapCoord(worldPos);
 	float2 uv = ndcPos.xy * float2(1, -1) * 0.5 + 0.5;
 
 	// シャドウマップの外にあるならば 1.0 を返す
@@ -117,9 +105,9 @@ float CastShadow(float4 lightClipPos, uniform bool selfShadow) {
 	[unroll]
 	for (int i = 0; i < N_SAMPLES; ++i) {
 		float2 offset = POISSON_DISK[i] / 1000.0;
-		float lightDepth = tex2D(ShadowBufferSampler, uv + offset).r;
+		float lightDepth = tex2D(ShadowSamp, uv + offset).r;
 
-		const float bias = 0.001;
+		const float bias = 0.01;
 		if (lightDepth < objectDepth - bias) {
 			shadow += 1.0;
 		}
@@ -128,12 +116,12 @@ float CastShadow(float4 lightClipPos, uniform bool selfShadow) {
 }
 
 float3 ShaderSurface(
+	float3 worldPos,
 	float3 baseColor,
 	float3 normal,
 	float3 viewDir,
 	float3 lightDir,
 	float3 lightIrradiance,
-	float4 lightClipPos,
 	uniform bool selfShadow
 ) {
 	float3 h = normalize(viewDir + lightDir);
@@ -143,7 +131,7 @@ float3 ShaderSurface(
 	float dotLH = saturate(dot(lightDir, h));
 	float dotVH = saturate(dot(viewDir, h));
 
-	float lightVisibility = CastShadow(lightClipPos, selfShadow);
+	float lightVisibility = CastShadow(worldPos, selfShadow);
 
 	const float roughness = 0.4;
 	const float f0 = 0.04;
@@ -171,7 +159,7 @@ float4 BaseColor(float2 tex, uniform bool useTexture)
 
 // ピクセルシェーダ
 float4 MainPS(
-	float4 lightClipPos : TEXCOORD0,
+	float3 worldPos : TEXCOORD0,
 	float2 tex : TEXCOORD1,
 	float3 normal : TEXCOORD2,
 	float3 viewDir : TEXCOORD3,
@@ -181,12 +169,12 @@ float4 MainPS(
 	float4 baseColor = BaseColor(tex, useTexture);
 	float3 lightIrradiance = LightColor;
 	float3 outColor = ShaderSurface(
+		worldPos,
 		baseColor.rgb,
 		normalize(normal),
 		normalize(viewDir),
 		-LightDir,
 		lightIrradiance,
-		lightClipPos,
 		selfShadow
 	);
 	return float4(linear2srgb(outColor), baseColor.a);
