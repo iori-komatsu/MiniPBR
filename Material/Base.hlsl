@@ -83,57 +83,87 @@ void MainVS(
 	oTexCoord = texCoord;
 }
 
-float3 CalculateLight(
-	float4 lightClipPos,
-	uniform bool selfShadow
-) {
+// ライトの visibility を返す。
+float CastShadow(float4 lightClipPos, uniform bool selfShadow) {
 	if (!selfShadow) {
-		return LightColor;
+		return 1.0;
 	}
 
-	// シャドウマップの座標に変換
-	lightClipPos /= lightClipPos.w;
-	float2 shadowMapCoord = float2(
-		(1 + lightClipPos.x) * 0.5,
-		(1 - lightClipPos.y) * 0.5);
+	float3 ndcPos = lightClipPos.xyz / lightClipPos.w;
+	float2 uv = ndcPos.xy * float2(1, -1) * 0.5 + 0.5;
 
-	if (any(saturate(shadowMapCoord) != shadowMapCoord)) {
-		return LightColor;
+	// シャドウマップの外にあるならば 1.0 を返す
+	if (any(saturate(uv) != uv)) {
+		return 1.0;
 	}
 
-	float lightDepth = max(lightClipPos.z - tex2D(ShadowBufferSampler, shadowMapCoord).r, 0);
-	float comp;
-	if (parthf) {
-		// セルフシャドウ mode2
-		comp = 1 - saturate(lightDepth * SKII2 * shadowMapCoord.y - 0.3);
-	} else {
-		// セルフシャドウ mode1
-		comp = 1 - saturate(lightDepth * SKII1 - 0.3);
+	float objectDepth = ndcPos.z;
+
+	const int N_SAMPLES = 5;
+	const float2 POISSON_DISK[5] = {
+		float2(          0,           0),
+		float2(-0.94201624, -0.39906216),
+		float2( 0.94558609, -0.76890725),
+		float2(-0.09418410, -0.92938870),
+		float2( 0.34495938,  0.29387760),
+	};
+
+	// uv の周りをサンプリングしてどれぐらい影になっているかを調べる
+	float shadow = 0.0;
+	[unroll]
+	for (int i = 0; i < N_SAMPLES; ++i) {
+		float2 offset = POISSON_DISK[i] / 1000.0;
+		float lightDepth = tex2D(ShadowBufferSampler, uv + offset).r;
+
+		const float bias = 0.001;
+		if (lightDepth < objectDepth - bias) {
+			shadow += 1.0;
+		}
 	}
-	return lerp(0, LightColor, comp);
+	return 1.0 - shadow / N_SAMPLES;
 }
 
 float3 ShaderSurface(
 	float3 baseColor,
 	float3 normal,
 	float3 viewDir,
-	float3 lightColor
+	float3 lightDir,
+	float3 lightIrradiance,
+	float4 lightClipPos,
+	uniform bool selfShadow
 ) {
-	float3 h = normalize(viewDir + -LightDir);
-	float dotNL = saturate(dot(normal, -LightDir));
+	float3 h = normalize(viewDir + lightDir);
+	float dotNL = saturate(dot(normal, lightDir));
 	float dotNV = saturate(dot(normal, viewDir));
 	float dotNH = saturate(dot(normal, h));
-	float dotLH = saturate(dot(-LightDir, h));
+	float dotLH = saturate(dot(lightDir, h));
 	float dotVH = saturate(dot(viewDir, h));
 
+	float lightVisibility = CastShadow(lightClipPos, selfShadow);
+
 	const float roughness = 0.4;
-	float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, roughness, 0.04);
+	const float f0 = 0.04;
+	float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, roughness, f0);
 	float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, dotLH, baseColor, roughness);
 
-	return (fSpecular + fDiffuse) * lightColor + AmbientColor * baseColor;
+	return (fSpecular + fDiffuse) * lightIrradiance * lightVisibility
+	     + AmbientColor * baseColor;
 }
 
-float4 BaseColor(float2 tex, uniform bool useTexture);
+float4 BaseColor(float2 tex, uniform bool useTexture)
+{
+	float4 baseColor = float4(MaterialAmbient, MaterialDiffuse.a);
+	if (useTexture) {
+		float4 texColor = tex2D(ObjectTextureSampler, tex);
+		// テクスチャ材質モーフ
+		texColor.rgb = lerp(
+			1,
+			texColor.rgb * TextureMulValue.rgb + TextureAddValue.rgb,
+			TextureMulValue.a + TextureAddValue.a);
+		baseColor *= texColor;
+	}
+	return float4(srgb2linear(baseColor.rgb), baseColor.a);
+}
 
 // ピクセルシェーダ
 float4 MainPS(
@@ -145,8 +175,16 @@ float4 MainPS(
 	uniform bool selfShadow
 ) : COLOR0 {
 	float4 baseColor = BaseColor(tex, useTexture);
-	float3 lightColor = CalculateLight(lightClipPos, selfShadow);
-	float3 outColor = ShaderSurface(baseColor.rgb, normalize(normal), normalize(viewDir), lightColor);
+	float3 lightIrradiance = LightColor;
+	float3 outColor = ShaderSurface(
+		baseColor.rgb,
+		normalize(normal),
+		normalize(viewDir),
+		-LightDir,
+		lightIrradiance,
+		lightClipPos,
+		selfShadow
+	);
 	return float4(linear2srgb(outColor), baseColor.a);
 }
 
@@ -164,18 +202,3 @@ MAIN_TEC(MainTec0, "object", false, false)
 MAIN_TEC(MainTec1, "object", true, false)
 MAIN_TEC(MainTecBS0, "object_ss", false, true)
 MAIN_TEC(MainTecBS1, "object_ss", true, true)
-
-float4 BaseColor(float2 tex, uniform bool useTexture)
-{
-	float4 baseColor = float4(MaterialAmbient, MaterialDiffuse.a);
-	if (useTexture) {
-		float4 texColor = tex2D(ObjectTextureSampler, tex);
-		// テクスチャ材質モーフ
-		texColor.rgb = lerp(
-			1,
-			texColor.rgb * TextureMulValue.rgb + TextureAddValue.rgb,
-			TextureMulValue.a + TextureAddValue.a);
-		baseColor *= texColor;
-	}
-	return float4(srgb2linear(baseColor.rgb), baseColor.a);
-}

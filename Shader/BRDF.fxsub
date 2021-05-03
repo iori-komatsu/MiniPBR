@@ -2,7 +2,7 @@
 #define SHADER_BRDF_INCLUDED
 
 // éQçlï∂å£
-// * Real Shading inUnreal Engine 4
+// * Real Shading in Unreal Engine 4
 //   https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 
 #include <Shader/Math.fxsub>
