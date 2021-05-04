@@ -72,7 +72,7 @@ void MainVS(
 }
 
 // ÉâÉCÉgÇÃ visibility Çï‘Ç∑ÅB
-float CastShadow(float3 worldPos, uniform bool selfShadow) {
+float CastShadow(float dotNL, float3 worldPos, uniform bool selfShadow) {
 	if (!selfShadow) {
 		return 1.0;
 	}
@@ -107,7 +107,7 @@ float CastShadow(float3 worldPos, uniform bool selfShadow) {
 		float2 offset = POISSON_DISK[i] / 1000.0;
 		float lightDepth = tex2D(ShadowSamp, uv + offset).r;
 
-		const float bias = 0.01;
+		const float bias = clamp(0.001 * tan(acos(dotNL)), 0.001, 0.005);
 		if (lightDepth < objectDepth - bias) {
 			shadow += 1.0;
 		}
@@ -131,7 +131,7 @@ float3 ShaderSurface(
 	float dotLH = saturate(dot(lightDir, h));
 	float dotVH = saturate(dot(viewDir, h));
 
-	float lightVisibility = CastShadow(worldPos, selfShadow);
+	float lightVisibility = CastShadow(dotNL, worldPos, selfShadow);
 
 	const float roughness = 0.4;
 	const float f0 = 0.04;
