@@ -3,27 +3,85 @@
 
 #include <Shader/Uniform.fxsub>
 
-float3 ShadowMapCoord(float3 worldPos) {
-    const float maxShadowDepth = 50;
+float4x4 InverseViewMatrix : VIEWINVERSE;
 
+// 視錐台の8つの頂点のビュー座標を返す。
+void GetFrustumCornersInViewSpace(out float4x4 oNearPlane, out float4x4 oFarPlane) {
+    float p11 = ProjectMatrix._11;
+    float p22 = ProjectMatrix._22;
+    float p33 = ProjectMatrix._33;
+    float p34 = ProjectMatrix._34;
+
+    float nearZ = -p34 / p33;
+    float farZ  = -p34 / (p33 - 1);
+
+    const float2 sgn = float2(-1, 1);
+    float4 v = float4(1/p11, 1/p22, 1, 1);
+    float4x4 plane = float4x4(
+        v * sgn.xxxx,
+        v * sgn.xyxx,
+        v * sgn.yxxx,
+        v * sgn.yyxx
+    );
+
+    oNearPlane = plane * nearZ;
+    oFarPlane  = plane * farZ;
+}
+
+// 視錐台の8つの頂点のワールド座標を返す。
+void GetFrustumCornersInWorldSpace(out float4x4 oNearPlane, out float4x4 oFarPlane) {
+    float4x4 viewNearPlane, viewFarPlane;
+    GetFrustumCornersInViewSpace(viewNearPlane, viewFarPlane);
+
+    oNearPlane = float4x4(
+        mul(viewNearPlane[0], InverseViewMatrix),
+        mul(viewNearPlane[1], InverseViewMatrix),
+        mul(viewNearPlane[2], InverseViewMatrix),
+        mul(viewNearPlane[3], InverseViewMatrix)
+    );
+    oFarPlane = float4x4(
+        mul(viewFarPlane[0], InverseViewMatrix),
+        mul(viewFarPlane[1], InverseViewMatrix),
+        mul(viewFarPlane[2], InverseViewMatrix),
+        mul(viewFarPlane[3], InverseViewMatrix)
+    );
+}
+
+// ワールド空間の座標をライトから見た座標に変換するための行列を返す。
+float4x4 LightViewMatrix(float maxShadowDepth, float lightDistance) {
+    // TODO: cameraDir と LightDir が平行な場合をケアする
     float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectMatrix._33);
-
-    // ライトから見た座標系に変換するための行列を作る
     float3 axisZ = LightDir;
     float3 axisX = cross(cameraDir, axisZ);
     float3 axisY = cross(axisZ, axisX);
-    float3x3 lightMatrix = transpose(float3x3(axisX, axisY, axisZ));
 
-    // ShadowMap の中心となる点
-    float3 origin = CameraPos + cameraDir * maxShadowDepth * 0.5;
+    // 座標軸が (axisX, axisY, axisZ) となるように空間を回転する行列
+    float3x3 rotation = transpose(float3x3(axisX, axisY, axisZ));
 
-    float3 lightPos = mul(worldPos.xyz - origin, lightMatrix);
+    // ShadowMap の中心となる点 (ワールド座標)
+    float3 origin = -LightDir * lightDistance;
+
+    return float4x4(
+        rotation[0], 0,
+        rotation[1], 0,
+        rotation[2], 0,
+        mul(-origin, rotation), 1
+    );
+}
+
+float3 ShadowMapCoord(float3 worldPos) {
+    const float maxShadowDepth = 100;
+    const float lightDistance = 50;
+
+    float4x4 lightMatrix = LightViewMatrix(maxShadowDepth, lightDistance);
+
+    float3 lightPos = mul(float4(worldPos, 1.0), lightMatrix).xyz;
 
     return float3(
-        // cameraPos がちょうど ShadowMap の端に位置するようにスケーリングする
-        lightPos.xy * dot(axisY, cameraDir) / (maxShadowDepth * 0.5),
-        // origin の z が 0.5 になるように平行移動し、クリップ座標に変換するためにスケーリングする
-        (lightPos.z + maxShadowDepth * 0.5) / maxShadowDepth
+        // TODO: xy のスケールを調整する
+        lightPos.xy / 20.0,
+        // クリップ座標に変換するためにスケーリングする
+        lightPos.z / maxShadowDepth
     );
 }
 
