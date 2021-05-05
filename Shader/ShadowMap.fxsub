@@ -2,8 +2,7 @@
 #define SHADER_SHADOW_MAP_INCLUDED
 
 #include <Shader/Parameter/Geometry.fxsub>
-
-float4x4 InverseViewMatrix : VIEWINVERSE;
+#include <Shader/Parameter/Light.fxsub>
 
 static float MaxShadowDepth = 100;
 static float LightDistance = 50;

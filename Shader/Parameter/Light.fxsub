@@ -1,0 +1,14 @@
+#ifndef SHADER_PARAMETER_LIGHT_INCLUDED
+#define SHADER_PARAMETER_LIGHT_INCLUDED
+
+#include <Shader/ColorSpace.fxsub>
+
+// 平行光源の向き
+float3 LightDir : DIRECTION < string Object = "Light"; >;
+
+// LightDiffuse と LightAmbient は UI で設定した値とは違う値になっている場合があるので
+// LightSpecular によって光の色を設定する。
+float3 _LightSpecular : SPECULAR  < string Object = "Light"; >;
+static float3 LightColor = srgb2linear(_LightSpecular);
+
+#endif

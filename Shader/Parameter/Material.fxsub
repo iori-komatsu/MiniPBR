@@ -1,0 +1,14 @@
+#ifndef SHADER_PARAMETER_MATERIAL_INCLUDED
+#define SHADER_PARAMETER_MATERIAL_INCLUDED
+
+// マテリアル
+float3 MaterialAmbient  : AMBIENT       < string Object = "Geometry"; >;
+float4 MaterialDiffuse  : DIFFUSE       < string Object = "Geometry"; >;
+float3 MaterialSpecular : SPECULAR      < string Object = "Geometry"; >;
+float  SpecularPower    : SPECULARPOWER < string Object = "Geometry"; >;
+
+// テクスチャ材質モーフ値
+float4 TextureAddValue : ADDINGTEXTURE;
+float4 TextureMulValue : MULTIPLYINGTEXTURE;
+
+#endif

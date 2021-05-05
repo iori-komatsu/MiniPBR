@@ -1,9 +1,11 @@
 #pragma warning(disable : 3571)
 #pragma warning(disable : 4717)
 
-#include <Shader/ColorSpace.fxsub>
 #include <Shader/BRDF.fxsub>
+#include <Shader/ColorSpace.fxsub>
 #include <Shader/Parameter/Geometry.fxsub>
+#include <Shader/Parameter/Light.fxsub>
+#include <Shader/Parameter/Material.fxsub>
 #include <Shader/ShadowMap.fxsub>
 
 // LightColor ‚É‘Î‚·‚é AmbientColor ‚Ì‘å‚«‚³
