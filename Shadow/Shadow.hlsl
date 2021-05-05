@@ -27,7 +27,7 @@ sampler2D ScnSamp = sampler_state {
 
 shared texture2D ShadowMap : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap";
-    string Format = "R16F";
+    string Format = "R32F";
     int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
@@ -74,7 +74,6 @@ float4 PS(in float2 coord: TEXCOORD0) : COLOR
     if (d == 0.0) {
         return float4(0.2, 0.2, 0.5, 1);
     }
-    d = exp(-d);
     return float4(d, d, d, 1.0);
 #else
     return tex2D(ScnSamp, coord);

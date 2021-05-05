@@ -4,14 +4,14 @@
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
 
-static float MaxShadowDepth = 100;
-static float LightDistance = 50;
+static float MaxShadowDepth = 50;
+static float LightDistance = 1000;
 
 // ワールド空間の座標をライトから見た座標に変換するための行列を返す。
 float4x4 CalculateLightViewMatrix() {
     // TODO: cameraDir と LightDir が平行な場合をケアする
-    //float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectionMatrix._33);
-    float3 up = float3(0, 0, 1);
+    float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectionMatrix._33);
+    float3 up = cameraDir;//float3(0, 0, 1);
     float3 axisZ = LightDir;
     float3 axisX = normalize(cross(up, axisZ));
     float3 axisY = normalize(cross(axisZ, axisX));
@@ -34,21 +34,24 @@ static float4x4 LightViewFromCameraViewMatrix = mul(InverseViewMatrix, LightView
 
 // 視錐台の8つの頂点のカメラビュー座標を返す。
 void GetFrustumCornersInCameraViewSpace(float nearZ, float farZ, out float4x4 oNearPlane, out float4x4 oFarPlane) {
-    float p11 = ProjectionMatrix._11;
-    float p22 = ProjectionMatrix._22;
-
-    float4 v = float4(1/p11, 1/p22, 1, 1);
-
-    const float2 sgn = float2(-1, 1);
-    float4x4 plane = float4x4(
-        v * sgn.xxxx,
-        v * sgn.xyxx,
-        v * sgn.yxxx,
-        v * sgn.yyxx
+    float3 v = float3(
+        1 / ProjectionMatrix._11,
+        1 / ProjectionMatrix._22,
+        1
     );
-
-    oNearPlane = plane * nearZ;
-    oFarPlane  = plane * farZ;
+    const float2 sgn = float2(1, -1);
+    oNearPlane = float4x4(
+        v * sgn.xxx * nearZ, 1,
+        v * sgn.xyx * nearZ, 1,
+        v * sgn.yxx * nearZ, 1,
+        v * sgn.yyx * nearZ, 1
+    );
+    oFarPlane = float4x4(
+        v * sgn.xxx * farZ, 1,
+        v * sgn.xyx * farZ, 1,
+        v * sgn.yxx * farZ, 1,
+        v * sgn.yyx * farZ, 1
+    );
 }
 
 // 視錐台の8つの頂点のライトビュー座標を返す。
@@ -84,26 +87,7 @@ float4x4 MatrixOrthoOffCenterLH(
     );
 }
 
-float4x4 MatrixOrthoLH(float w, float h, float nearZ, float farZ) {
-    return float4x4(
-        2/w, 0, 0, 0,
-        0, 2/h, 0, 0,
-        0, 0, 1/(farZ-nearZ), 0,
-        0, 0, nearZ/(nearZ-farZ), 1
-    );
-}
-
-
 float4x4 CalculateLightProjectionMatrix() {
-    /*
-    return float4x4(
-        1/30.0,0,0,0,
-        0,1/10.0,0,0,
-        0,0,1/MaxShadowDepth,0,
-        0,0,0,1
-    );
-    */
-
     float4x4 nearPlane, farPlane;
     GetFrustumCornersInLightViewSpace(0, MaxShadowDepth, nearPlane, farPlane);
 
@@ -128,15 +112,16 @@ float4x4 CalculateLightProjectionMatrix() {
     return MatrixOrthoOffCenterLH(
         minCoord.x, maxCoord.x,
         minCoord.y, maxCoord.y,
-        0, MaxShadowDepth
+        0, 2*LightDistance
     );
 }
 
 static float4x4 LightProjectionMatrix = CalculateLightProjectionMatrix();
-static float4x4 LightViewProjectionMatrix = mul(LightViewMatrix, LightProjectionMatrix);
 
-float3 ShadowMapCoord(float3 worldPos) {
-    return mul(float4(worldPos, 1.0), LightViewProjectionMatrix).xyz;
+float4 ShadowMapCoord(float3 worldPos, out float oDepth) {
+    float4 viewPos = mul(float4(worldPos, 1), LightViewMatrix);
+    oDepth = viewPos.z;
+    return mul(viewPos, LightProjectionMatrix);
 }
 
 #endif

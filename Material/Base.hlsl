@@ -79,8 +79,9 @@ float CastShadow(float dotNL, float3 worldPos, uniform bool selfShadow) {
 		return 1.0;
 	}
 
-	float3 ndcPos = ShadowMapCoord(worldPos);
-	float2 uv = ndcPos.xy * float2(1, -1) * 0.5 + 0.5;
+	float objectDepth;
+	float4 clipPos = ShadowMapCoord(worldPos, objectDepth);
+	float2 uv = (clipPos.xy / clipPos.w) * float2(1, -1) * 0.5 + 0.5;
 
 	// シャドウマップの外にあるならば 1.0 を返す
 	if (any(saturate(uv) != uv)) {
@@ -90,8 +91,6 @@ float CastShadow(float dotNL, float3 worldPos, uniform bool selfShadow) {
 	// 参考文献:
 	// * opengl-tutorial "チュートリアル16：シャドウマッピング"
 	//   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
-
-	float objectDepth = ndcPos.z;
 
 	const int N_SAMPLES = 5;
 	const float2 POISSON_DISK[5] = {

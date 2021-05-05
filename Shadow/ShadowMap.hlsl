@@ -5,16 +5,13 @@ void ShadowMapVS(
     out float4 oPos : POSITION,
     out float oDepth : TEXCOORD0
 ) {
-    float3 clipPos = ShadowMapCoord(pos.xyz);
-    oPos = float4(clipPos, 1.0);
-    oDepth = clipPos.z;
+    oPos = ShadowMapCoord(pos.xyz, oDepth);
 }
 
 float4 ShadowMapPS(
     in float depth : TEXCOORD0
 ) : COLOR {
-    float2 delta = abs(float2(ddx(depth), ddy(depth)));
-    return depth + (delta.x + delta.y) * 0.5;
+    return float4(depth, 0, 0, 0);
 }
 
 technique DepthTec1<string MMDPass = "object_ss";> {
