@@ -3,14 +3,14 @@
 
 #include <Shader/ColorSpace.fxsub>
 #include <Shader/BRDF.fxsub>
-#include <Shader/Uniform.fxsub>
+#include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/ShadowMap.fxsub>
 
 // LightColor に対する AmbientColor の大きさ
 static const float AmbientCoeff = 0.2;
 
-static float3 LightColor   = srgb2linear(LightAmbient) * 4.0;
-static float3 AmbientColor = LightColor * AmbientCoeff;
+static float3 LightIrradiance = 4.0 * LightColor;
+static float3 AmbientIrradiance = LightIrradiance * AmbientCoeff;
 
 bool     parthf;   // パースペクティブフラグ
 bool     transp;   // 半透明フラグ
@@ -139,7 +139,7 @@ float3 ShaderSurface(
 	float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, dotLH, baseColor, roughness);
 
 	return (fSpecular + fDiffuse) * lightIrradiance * lightVisibility
-	     + AmbientColor * baseColor;
+	     + AmbientIrradiance * baseColor;
 }
 
 float4 BaseColor(float2 tex, uniform bool useTexture)
@@ -167,14 +167,13 @@ float4 MainPS(
 	uniform bool selfShadow
 ) : COLOR0 {
 	float4 baseColor = BaseColor(tex, useTexture);
-	float3 lightIrradiance = LightColor;
 	float3 outColor = ShaderSurface(
 		worldPos,
 		baseColor.rgb,
 		normalize(normal),
 		normalize(viewDir),
 		-LightDir,
-		lightIrradiance,
+		LightIrradiance,
 		selfShadow
 	);
 	return float4(linear2srgb(outColor), baseColor.a);

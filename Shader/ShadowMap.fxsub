@@ -1,22 +1,46 @@
 #ifndef SHADER_SHADOW_MAP_INCLUDED
 #define SHADER_SHADOW_MAP_INCLUDED
 
-#include <Shader/Uniform.fxsub>
+#include <Shader/Parameter/Geometry.fxsub>
 
 float4x4 InverseViewMatrix : VIEWINVERSE;
 
-// 視錐台の8つの頂点のビュー座標を返す。
-void GetFrustumCornersInViewSpace(out float4x4 oNearPlane, out float4x4 oFarPlane) {
-    float p11 = ProjectMatrix._11;
-    float p22 = ProjectMatrix._22;
-    float p33 = ProjectMatrix._33;
-    float p34 = ProjectMatrix._34;
+static float MaxShadowDepth = 100;
+static float LightDistance = 50;
 
-    float nearZ = -p34 / p33;
-    float farZ  = -p34 / (p33 - 1);
+// ワールド空間の座標をライトから見た座標に変換するための行列を返す。
+float4x4 CalculateLightViewMatrix() {
+    // TODO: cameraDir と LightDir が平行な場合をケアする
+    //float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectionMatrix._33);
+    float3 up = float3(0, 0, 1);
+    float3 axisZ = LightDir;
+    float3 axisX = cross(up, axisZ);
+    float3 axisY = cross(axisZ, axisX);
+
+    // 座標軸が (axisX, axisY, axisZ) となるように空間を回転する行列
+    float3x3 rotation = transpose(float3x3(axisX, axisY, axisZ));
+
+    float3 origin = -LightDir * LightDistance;
+
+    return float4x4(
+        rotation[0], 0,
+        rotation[1], 0,
+        rotation[2], 0,
+        mul(-origin, rotation), 1
+    );
+}
+
+static float4x4 LightViewMatrix = CalculateLightViewMatrix();
+static float4x4 LightViewFromCameraViewMatrix = mul(InverseViewMatrix, LightViewMatrix);
+
+// 視錐台の8つの頂点のカメラビュー座標を返す。
+void GetFrustumCornersInCameraViewSpace(float nearZ, float farZ, out float4x4 oNearPlane, out float4x4 oFarPlane) {
+    float p11 = ProjectionMatrix._11;
+    float p22 = ProjectionMatrix._22;
+
+    float4 v = float4(1/p11, 1/p22, 1, 1);
 
     const float2 sgn = float2(-1, 1);
-    float4 v = float4(1/p11, 1/p22, 1, 1);
     float4x4 plane = float4x4(
         v * sgn.xxxx,
         v * sgn.xyxx,
@@ -28,61 +52,92 @@ void GetFrustumCornersInViewSpace(out float4x4 oNearPlane, out float4x4 oFarPlan
     oFarPlane  = plane * farZ;
 }
 
-// 視錐台の8つの頂点のワールド座標を返す。
-void GetFrustumCornersInWorldSpace(out float4x4 oNearPlane, out float4x4 oFarPlane) {
-    float4x4 viewNearPlane, viewFarPlane;
-    GetFrustumCornersInViewSpace(viewNearPlane, viewFarPlane);
+// 視錐台の8つの頂点のライトビュー座標を返す。
+void GetFrustumCornersInLightViewSpace(float nearZ, float farZ, out float4x4 oNearPlane, out float4x4 oFarPlane) {
+    float4x4 nearPlane, farPlane;
+    GetFrustumCornersInCameraViewSpace(nearZ, farZ, nearPlane, farPlane);
 
     oNearPlane = float4x4(
-        mul(viewNearPlane[0], InverseViewMatrix),
-        mul(viewNearPlane[1], InverseViewMatrix),
-        mul(viewNearPlane[2], InverseViewMatrix),
-        mul(viewNearPlane[3], InverseViewMatrix)
+        mul(nearPlane[0], LightViewFromCameraViewMatrix),
+        mul(nearPlane[1], LightViewFromCameraViewMatrix),
+        mul(nearPlane[2], LightViewFromCameraViewMatrix),
+        mul(nearPlane[3], LightViewFromCameraViewMatrix)
     );
     oFarPlane = float4x4(
-        mul(viewFarPlane[0], InverseViewMatrix),
-        mul(viewFarPlane[1], InverseViewMatrix),
-        mul(viewFarPlane[2], InverseViewMatrix),
-        mul(viewFarPlane[3], InverseViewMatrix)
+        mul(farPlane[0],  LightViewFromCameraViewMatrix),
+        mul(farPlane[1],  LightViewFromCameraViewMatrix),
+        mul(farPlane[2],  LightViewFromCameraViewMatrix),
+        mul(farPlane[3],  LightViewFromCameraViewMatrix)
     );
 }
 
-// ワールド空間の座標をライトから見た座標に変換するための行列を返す。
-float4x4 LightViewMatrix(float maxShadowDepth, float lightDistance) {
-    // TODO: cameraDir と LightDir が平行な場合をケアする
-    float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectMatrix._33);
-    float3 axisZ = LightDir;
-    float3 axisX = cross(cameraDir, axisZ);
-    float3 axisY = cross(axisZ, axisX);
-
-    // 座標軸が (axisX, axisY, axisZ) となるように空間を回転する行列
-    float3x3 rotation = transpose(float3x3(axisX, axisY, axisZ));
-
-    // ShadowMap の中心となる点 (ワールド座標)
-    float3 origin = -LightDir * lightDistance;
-
+float4x4 MatrixOrthoOffCenterLH(
+    float minX, float maxX,
+    float minY, float maxY,
+    float nearZ, float farZ
+) {
+    // 出典: https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixorthooffcenterlh
     return float4x4(
-        rotation[0], 0,
-        rotation[1], 0,
-        rotation[2], 0,
-        mul(-origin, rotation), 1
+        2/(maxX-minX), 0, 0, 0,
+        0, 2/(maxY-minY), 0, 0,
+        0, 0, 1/(farZ-nearZ), 0,
+        (minX+maxX)/(minX-maxX), (minY+maxY)/(minY-maxY), nearZ/(nearZ-farZ), 1
     );
 }
+
+float4x4 MatrixOrthoLH(float w, float h, float nearZ, float farZ) {
+    return float4x4(
+        2/w, 0, 0, 0,
+        0, 2/h, 0, 0,
+        0, 0, 1/(farZ-nearZ), 0,
+        0, 0, nearZ/(nearZ-farZ), 1
+    );
+}
+
+
+float4x4 CalculateLightProjectionMatrix() {
+    return float4x4(
+        1/30.0,0,0,0,
+        0,1/10.0,0,0,
+        0,0,1/MaxShadowDepth,0,
+        0,0,0,1
+    );
+
+    /*
+    float4x4 nearPlane, farPlane;
+    GetFrustumCornersInLightViewSpace(0, MaxShadowDepth, nearPlane, farPlane);
+
+    float2 minCoord = nearPlane[0].xy;
+    minCoord = min(minCoord, nearPlane[1].xy);
+    minCoord = min(minCoord, nearPlane[2].xy);
+    minCoord = min(minCoord, nearPlane[3].xy);
+    minCoord = min(minCoord, farPlane[0].xy);
+    minCoord = min(minCoord, farPlane[1].xy);
+    minCoord = min(minCoord, farPlane[2].xy);
+    minCoord = min(minCoord, farPlane[3].xy);
+
+    float2 maxCoord = nearPlane[0].xy;
+    maxCoord = max(maxCoord, nearPlane[1].xy);
+    maxCoord = max(maxCoord, nearPlane[2].xy);
+    maxCoord = max(maxCoord, nearPlane[3].xy);
+    maxCoord = max(maxCoord, farPlane[0].xy);
+    maxCoord = max(maxCoord, farPlane[1].xy);
+    maxCoord = max(maxCoord, farPlane[2].xy);
+    maxCoord = max(maxCoord, farPlane[3].xy);
+
+    return MatrixOrthoOffCenterLH(
+        minCoord.x, maxCoord.x,
+        minCoord.y, maxCoord.y,
+        0, MaxShadowDepth
+    );
+    */
+}
+
+static float4x4 LightProjectionMatrix = CalculateLightProjectionMatrix();
+static float4x4 LightViewProjectionMatrix = mul(LightViewMatrix, LightProjectionMatrix);
 
 float3 ShadowMapCoord(float3 worldPos) {
-    const float maxShadowDepth = 100;
-    const float lightDistance = 50;
-
-    float4x4 lightMatrix = LightViewMatrix(maxShadowDepth, lightDistance);
-
-    float3 lightPos = mul(float4(worldPos, 1.0), lightMatrix).xyz;
-
-    return float3(
-        // TODO: xy のスケールを調整する
-        lightPos.xy / 20.0,
-        // クリップ座標に変換するためにスケーリングする
-        lightPos.z / maxShadowDepth
-    );
+    return mul(float4(worldPos, 1.0), LightViewProjectionMatrix).xyz;
 }
 
 #endif

@@ -66,19 +66,19 @@ void VS(
     oCoord = coord.xy + ViewportOffset;
 }
 
-float4 DrawShadowMap(float2 coord) {
+float4 PS(in float2 coord: TEXCOORD0) : COLOR
+{
+#if 0
+    // シャドウマップの内容を描画
     float d = tex2D(ShadowSamp, coord).r;
     if (d == 0.0) {
         return float4(0.2, 0.2, 0.5, 1);
     }
     d = exp(-d);
     return float4(d, d, d, 1.0);
-}
-
-float4 PS(in float2 coord: TEXCOORD0) : COLOR
-{
-    //return DrawShadowMap(coord);
+#else
     return tex2D(ScnSamp, coord);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
