@@ -1,0 +1,7 @@
+#ifndef SHADER_PARAMETER_VIEWPORT_INCLUDED
+#define SHADER_PARAMETER_VIEWPORT_INCLUDED
+
+float2 ViewportSize : VIEWPORTPIXELSIZE;
+static float2 ViewportOffset = float2(0.5, 0.5) / ViewportSize;
+
+#endif

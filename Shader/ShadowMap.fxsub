@@ -11,7 +11,7 @@ static float LightDistance = 1000;
 float4x4 CalculateLightViewMatrix() {
     // TODO: cameraDir と LightDir が平行な場合をケアする
     float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectionMatrix._33);
-    float3 up = cameraDir;//float3(0, 0, 1);
+    float3 up = float3(0, 0, 1);
     float3 axisZ = LightDir;
     float3 axisX = normalize(cross(up, axisZ));
     float3 axisY = normalize(cross(axisZ, axisX));
@@ -118,10 +118,18 @@ float4x4 CalculateLightProjectionMatrix() {
 
 static float4x4 LightProjectionMatrix = CalculateLightProjectionMatrix();
 
+// シャドウマップを描画する際のクリップ座標を返す。
 float4 ShadowMapCoord(float3 worldPos, out float oDepth) {
     float4 viewPos = mul(float4(worldPos, 1), LightViewMatrix);
     oDepth = viewPos.z;
     return mul(viewPos, LightProjectionMatrix);
+}
+
+float ShadowBias(float dotNL, float depth) {
+    float baseBias = clamp(0.002 * tan(acos(dotNL)), 0.001, 0.01);
+    float deltaX = abs(ddx(depth));
+    float deltaY = abs(ddy(depth));
+	return baseBias * MaxShadowDepth + deltaX + deltaY;
 }
 
 #endif

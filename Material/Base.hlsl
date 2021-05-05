@@ -11,7 +11,7 @@
 // LightColor に対する AmbientColor の大きさ
 static const float AmbientCoeff = 0.2;
 
-static float3 LightIrradiance = 4.0 * LightColor;
+static float3 LightIrradiance = 6.0 * LightColor;
 static float3 AmbientIrradiance = LightIrradiance * AmbientCoeff;
 
 bool     parthf;   // パースペクティブフラグ
@@ -108,12 +108,13 @@ float CastShadow(float dotNL, float3 worldPos, uniform bool selfShadow) {
 		float2 offset = POISSON_DISK[i] / 1000.0;
 		float lightDepth = tex2D(ShadowSamp, uv + offset).r;
 
-		const float bias = clamp(0.001 * tan(acos(dotNL)), 0.001, 0.005);
-		if (lightDepth < objectDepth - bias) {
+		if (lightDepth < objectDepth - ShadowBias(dotNL, objectDepth)) {
 			shadow += 1.0;
 		}
 	}
-	return 1.0 - shadow / N_SAMPLES;
+
+	const float minVisibility = 0.4;
+	return lerp(1, minVisibility, shadow / N_SAMPLES);
 }
 
 float3 ShaderSurface(

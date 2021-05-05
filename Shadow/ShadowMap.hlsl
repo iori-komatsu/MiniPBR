@@ -11,7 +11,9 @@ void ShadowMapVS(
 float4 ShadowMapPS(
     in float depth : TEXCOORD0
 ) : COLOR {
-    return float4(depth, 0, 0, 0);
+    float deltaX = abs(ddx(depth));
+    float deltaY = abs(ddy(depth));
+    return float4(depth + deltaX + deltaY, 0, 0, 0);
 }
 
 technique DepthTec1<string MMDPass = "object_ss";> {

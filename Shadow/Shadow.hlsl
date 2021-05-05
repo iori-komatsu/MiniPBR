@@ -1,3 +1,5 @@
+#include <Shader/Parameter/Viewport.fxsub>
+
 float Script : STANDARDSGLOBAL <
     string ScriptOutput = "color";
     string ScriptClass = "scene";
@@ -47,11 +49,6 @@ sampler2D ShadowSamp = sampler_state {
 
 //-------------------------------------------------------------------------------------------------
 
-// スクリーンサイズ
-float2 ViewportSize : VIEWPORTPIXELSIZE;
-
-static float2 ViewportOffset = float2(0.5, 0.5) / ViewportSize;
-
 // レンダリングターゲットのクリア値
 float4 ClearColor = {1, 1, 1, 0};
 float ClearDepth  = 1.0;
@@ -68,16 +65,7 @@ void VS(
 
 float4 PS(in float2 coord: TEXCOORD0) : COLOR
 {
-#if 0
-    // シャドウマップの内容を描画
-    float d = tex2D(ShadowSamp, coord).r;
-    if (d == 0.0) {
-        return float4(0.2, 0.2, 0.5, 1);
-    }
-    return float4(d, d, d, 1.0);
-#else
     return tex2D(ScnSamp, coord);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
