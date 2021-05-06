@@ -31,6 +31,7 @@ shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap1";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -42,6 +43,7 @@ shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap2";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -53,6 +55,7 @@ shared texture2D ShadowMap3 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap3";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -64,6 +67,7 @@ shared texture2D ShadowMap4 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap4";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -75,6 +79,7 @@ shared texture2D ShadowMap5 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap5";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -86,6 +91,7 @@ shared texture2D ShadowMap6 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap6";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -97,6 +103,7 @@ shared texture2D ShadowMap7 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap7";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -108,6 +115,7 @@ shared texture2D ShadowMap8 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap8";
     string Format = "R32F";
     int2   Dimensions = {ShadowMapSize, ShadowMapSize};
+    int    Miplevels = 1;
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
