@@ -1,0 +1,8 @@
+#ifndef SHADER_COMMON_INCLUDED
+#define SHADER_COMMON_INCLUDED
+
+#pragma warning(disable : 3571)
+#pragma warning(disable : 4717)
+
+
+#endif

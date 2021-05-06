@@ -1,3 +1,4 @@
+#include <Shader/Common.fxsub>
 #include <Shader/ShadowMap.fxsub>
 
 void ShadowMapVS(

@@ -1,6 +1,4 @@
-#pragma warning(disable : 3571)
-#pragma warning(disable : 4717)
-
+#include <Shader/Common.fxsub>
 #include <Shader/BRDF.fxsub>
 #include <Shader/ColorSpace.fxsub>
 #include <Shader/Parameter/Geometry.fxsub>

@@ -1,3 +1,4 @@
+#include <Shader/Common.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
 
 float Script : STANDARDSGLOBAL <
