@@ -77,7 +77,7 @@ float3 ShaderSurface(
     const float minLightVisibility = 0.3;
     float lightVisibility;
     if (selfShadow) {
-        lightVisibility = lerp(minLightVisibility, 1.0, CastShadow(dotNL, worldPos));
+        lightVisibility = lerp(minLightVisibility, 1.0, CastShadow(worldPos, dotNL));
     } else {
         lightVisibility = 1;
     }

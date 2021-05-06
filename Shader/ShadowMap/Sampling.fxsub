@@ -46,7 +46,7 @@ float ShadowBias(float dotNL, float depth) {
     //return baseBias;
 }
 
-float CastShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
+float SampleShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
     // 参考文献:
     // * opengl-tutorial "チュートリアル16：シャドウマッピング"
     //   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
@@ -77,8 +77,8 @@ float CastShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
     return 1 - shadow / N_SAMPLES;
 }
 
-// ライトの visibility を返す。
-float CastShadow(float dotNL, float3 worldPos) {
+// 指定した地点におけるライトの visibility を返す。
+float CastShadow(float3 worldPos, float dotNL) {
     float4 lightViewPos = mul(float4(worldPos, 1), LightViewMatrix);
     float objectDepth = lightViewPos.z;
 
@@ -102,13 +102,13 @@ float CastShadow(float dotNL, float3 worldPos) {
 
     [branch]
     if (layer == 1) {
-        return CastShadow(Shadow1Samp, uv1, objectDepth, dotNL);
+        return SampleShadow(Shadow1Samp, uv1, objectDepth, dotNL);
     } else if (layer == 2) {
-        return CastShadow(Shadow2Samp, uv2, objectDepth, dotNL);
+        return SampleShadow(Shadow2Samp, uv2, objectDepth, dotNL);
     } else if (layer == 3) {
-        return CastShadow(Shadow3Samp, uv3, objectDepth, dotNL);
+        return SampleShadow(Shadow3Samp, uv3, objectDepth, dotNL);
     } else {
-        return CastShadow(Shadow4Samp, uv4, objectDepth, dotNL);
+        return SampleShadow(Shadow4Samp, uv4, objectDepth, dotNL);
     }
 }
 
