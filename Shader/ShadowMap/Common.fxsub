@@ -126,18 +126,26 @@ float CalculateFrustumSplit(int i, int nSplit, float nearZ, float farZ, float la
     return lerp(zl, ze, lambda);
 }
 
-static float FrustumSplits[5] = {
+static float FrustumSplits[9] = {
     ShadowMapNearZ,
-    CalculateFrustumSplit(1, 4, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
-    CalculateFrustumSplit(2, 4, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
-    CalculateFrustumSplit(3, 4, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(1, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(2, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(3, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(4, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(5, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(6, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(7, 8, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
     ShadowMapFarZ,
 };
-static float4x4 LightProjectionMatrix[4] = {
+static float4x4 LightProjectionMatrix[8] = {
     CalculateLightProjectionMatrix(FrustumSplits[0], FrustumSplits[1]),
     CalculateLightProjectionMatrix(FrustumSplits[1], FrustumSplits[2]),
     CalculateLightProjectionMatrix(FrustumSplits[2], FrustumSplits[3]),
     CalculateLightProjectionMatrix(FrustumSplits[3], FrustumSplits[4]),
+    CalculateLightProjectionMatrix(FrustumSplits[4], FrustumSplits[5]),
+    CalculateLightProjectionMatrix(FrustumSplits[5], FrustumSplits[6]),
+    CalculateLightProjectionMatrix(FrustumSplits[6], FrustumSplits[7]),
+    CalculateLightProjectionMatrix(FrustumSplits[7], FrustumSplits[8]),
 };
 
 #endif
