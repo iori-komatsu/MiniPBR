@@ -43,7 +43,7 @@ sampler2D Shadow4Samp = sampler_state {
 float ShadowBias(float dotNL, float depth) {
     return 0.1;
     //float baseBias = clamp(0.002 * tan(acos(dotNL)), 0.001, 0.01);
-	//return baseBias;
+    //return baseBias;
 }
 
 float CastShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {

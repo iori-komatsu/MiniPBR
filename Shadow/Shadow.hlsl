@@ -129,15 +129,15 @@ float4 PS(in float2 coord: TEXCOORD0) : COLOR {
 technique PostEffect <
     string Script = 
         "RenderColorTarget0=ScnMap;"
-	    "RenderDepthStencilTarget=DepthBuffer;"
-		"ClearSetColor=ClearColor;"
-		"ClearSetDepth=ClearDepth;"
-		"Clear=Color;"
-		"Clear=Depth;"
-	    "ScriptExternal=Color;"
+        "RenderDepthStencilTarget=DepthBuffer;"
+        "ClearSetColor=ClearColor;"
+        "ClearSetDepth=ClearDepth;"
+        "Clear=Color;"
+        "Clear=Depth;"
+        "ScriptExternal=Color;"
         "RenderColorTarget0=;"
-	    "RenderDepthStencilTarget=;"
-	    "Pass=PostEffect;"
+        "RenderDepthStencilTarget=;"
+        "Pass=PostEffect;"
     ;
 > {
     pass PostEffect < string Script= "Draw=Buffer;"; > {

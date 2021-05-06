@@ -10,66 +10,66 @@
 // Lambert拡散BRDF
 // ただし dotNL を掛けて返す。
 float3 LambertDiffuseBRDF(float dotNL, float3 albedo) {
-	return INV_PI * albedo * dotNL;
+    return INV_PI * albedo * dotNL;
 }
 
 // Half-Lambert を使った拡散BRDF
 // ただし dotNL を掛けて返す。
 float3 HalfLambertDiffuseBRDF(float dotNL, float3 albedo) {
-	const float invZ = 3.0 / (4.0 * PI);
-	float c = dotNL * 0.5 + 0.5;
-	return invZ * c * c * albedo;
+    const float invZ = 3.0 / (4.0 * PI);
+    float c = dotNL * 0.5 + 0.5;
+    return invZ * c * c * albedo;
 }
 
 float SchlickF90(float cosine, float f90) {
-	float c = 1.0 - cosine;
-	return 1.0 + (f90 - 1.0) * (c*c*c*c*c);
+    float c = 1.0 - cosine;
+    return 1.0 + (f90 - 1.0) * (c*c*c*c*c);
 }
 
 float3 DiffuseBRDF(float dotNL, float dotNV, float dotLH, float3 albedo, float roughness) {
-	// Half-Lambert と Burley Diffuse を組み合わせる
-	float3 base = HalfLambertDiffuseBRDF(dotNL, albedo);
-	float f90 = 0.5 + 3.5 * sq(dotLH) * roughness; // オリジナルの式よりも f90 を大きくする
-	return base * SchlickF90(dotNL, f90) * SchlickF90(dotNV, f90);
+    // Half-Lambert と Burley Diffuse を組み合わせる
+    float3 base = HalfLambertDiffuseBRDF(dotNL, albedo);
+    float f90 = 0.5 + 3.5 * sq(dotLH) * roughness; // オリジナルの式よりも f90 を大きくする
+    return base * SchlickF90(dotNL, f90) * SchlickF90(dotNV, f90);
 }
 
 float3 SpecularD(float dotNH, float roughness) {
-	float a = sq(roughness);
-	return INV_PI * sq(a) / sq(sq(dotNH) * (sq(a) - 1.0) + 1.0);
+    float a = sq(roughness);
+    return INV_PI * sq(a) / sq(sq(dotNH) * (sq(a) - 1.0) + 1.0);
 }
 
 float3 SpecularG(float dotNL, float dotNV, float roughness) {
-	float k = sq(roughness + 1.0);
-	float gl = dotNL / (dotNL * (1.0 - k) + k);
-	float gv = dotNV / (dotNV * (1.0 - k) + k);
-	return gl * gv;
+    float k = sq(roughness + 1.0);
+    float gl = dotNL / (dotNL * (1.0 - k) + k);
+    float gv = dotNV / (dotNV * (1.0 - k) + k);
+    return gl * gv;
 }
 
 float3 SpecularF(float dotVH, float3 f0) {
-	return f0 + (1.0 - f0) * exp2((-5.55473 * dotVH - 6.98316) * dotVH);
+    return f0 + (1.0 - f0) * exp2((-5.55473 * dotVH - 6.98316) * dotVH);
 }
 
 // Cook-Torrance のスペキュラBRDF
 // ただし dotNL を掛けて返す。
 float3 SpecularBRDF(
-	float dotNL,
-	float dotNV,
-	float dotNH,
-	float dotVH,
-	float roughness,
-	float3 f0
+    float dotNL,
+    float dotNV,
+    float dotNH,
+    float dotVH,
+    float roughness,
+    float3 f0
 ) {
-	return SpecularD(dotNH, roughness)
-	     * SpecularF(dotVH, f0)
-	     * SpecularG(dotNL, dotNV, roughness)
-	     / (4.0 * dotNV);
+    return SpecularD(dotNH, roughness)
+         * SpecularF(dotVH, f0)
+         * SpecularG(dotNL, dotNV, roughness)
+         / (4.0 * dotNV);
 }
 
 // Blinn-Phong specular
 float3 BlinnPhongSpecular(float dotNH, float3 reflectance, float power) {
-	float invZ = (power + 2.0) * (power + 4.0)
+    float invZ = (power + 2.0) * (power + 4.0)
                / (8.0 * PI * (exp2(-0.5 * power) + power));
-	return invZ * reflectance * pow(max(0, dotNH), power);
+    return invZ * reflectance * pow(max(0, dotNH), power);
 }
 
 #endif

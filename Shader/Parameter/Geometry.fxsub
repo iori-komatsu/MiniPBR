@@ -1,14 +1,12 @@
 #ifndef SHADER_PARAMETER_GEOMETRY_INCLUDED
 #define SHADER_PARAMETER_GEOMETRY_INCLUDED
 
-// ジオメトリ変換
 float4x4 WorldViewProjMatrix : WORLDVIEWPROJECTION;
 float4x4 WorldMatrix         : WORLD;
 float4x4 ViewMatrix          : VIEW;
 float4x4 ProjectionMatrix    : PROJECTION;
 float4x4 InverseViewMatrix   : VIEWINVERSE;
 
-// カメラ
 float3 CameraPos : POSITION < string Object = "Camera"; >;
 static float3 CameraDir = normalize(ViewMatrix._13_23_33 / ProjectionMatrix._33);
 
