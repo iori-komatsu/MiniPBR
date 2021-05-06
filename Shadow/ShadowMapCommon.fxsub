@@ -6,7 +6,10 @@ void ShadowMapVS(
     out float4 oPos : POSITION,
     out float oDepth : TEXCOORD0
 ) {
-    oPos = ShadowMapCoord(pos.xyz, oDepth);
+    float4 worldPos = mul(pos, WorldMatrix);
+    float4 viewPos = mul(worldPos, LightViewMatrix);
+    oDepth = viewPos.z;
+    oPos = mul(viewPos, LightProjectionMatrix[SHADOW_MAP_LAYER-1]);
 }
 
 float4 ShadowMapPS(

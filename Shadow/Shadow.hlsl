@@ -28,8 +28,8 @@ sampler2D ScnSamp = sampler_state {
 
 #define SHADOW_MAP_SIZE 2048
 
-shared texture2D ShadowMap : OFFSCREENRENDERTARGET <
-    string Description = "MiniPBR ShadowMap";
+shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET <
+    string Description = "MiniPBR ShadowMap1";
     string Format = "R32F";
     int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
@@ -37,10 +37,67 @@ shared texture2D ShadowMap : OFFSCREENRENDERTARGET <
     bool   AntiAlias = false;
     string DefaultEffect =
         "self = hide;"
-        "* = ShadowMap.fx";
+        "* = ShadowMap1.fx";
 >;
-sampler2D ShadowSamp = sampler_state {
-    texture   = <ShadowMap>;
+shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET <
+    string Description = "MiniPBR ShadowMap2";
+    string Format = "R32F";
+    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
+    float  ClearDepth = 1.0;
+    bool   AntiAlias = false;
+    string DefaultEffect =
+        "self = hide;"
+        "* = ShadowMap2.fx";
+>;
+shared texture2D ShadowMap3 : OFFSCREENRENDERTARGET <
+    string Description = "MiniPBR ShadowMap3";
+    string Format = "R32F";
+    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
+    float  ClearDepth = 1.0;
+    bool   AntiAlias = false;
+    string DefaultEffect =
+        "self = hide;"
+        "* = ShadowMap3.fx";
+>;
+shared texture2D ShadowMap4 : OFFSCREENRENDERTARGET <
+    string Description = "MiniPBR ShadowMap4";
+    string Format = "R32F";
+    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
+    float  ClearDepth = 1.0;
+    bool   AntiAlias = false;
+    string DefaultEffect =
+        "self = hide;"
+        "* = ShadowMap4.fx";
+>;
+sampler2D Shadow1Samp = sampler_state {
+    texture   = <ShadowMap1>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+sampler2D Shadow2Samp = sampler_state {
+    texture   = <ShadowMap2>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+sampler2D Shadow3Samp = sampler_state {
+    texture   = <ShadowMap3>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+sampler2D Shadow4Samp = sampler_state {
+    texture   = <ShadowMap4>;
     MinFilter = POINT;
     MagFilter = POINT;
     MipFilter = NONE;
@@ -59,13 +116,12 @@ void VS(
     in float4 coord : TEXCOORD0,
     out float4 oPos : POSITION,
     out float2 oCoord : TEXCOORD0
-){
+) {
     oPos = pos;
     oCoord = coord.xy + ViewportOffset;
 }
 
-float4 PS(in float2 coord: TEXCOORD0) : COLOR
-{
+float4 PS(in float2 coord: TEXCOORD0) : COLOR {
     return tex2D(ScnSamp, coord);
 }
 

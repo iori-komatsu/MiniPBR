@@ -1,16 +1,7 @@
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
 #include <Shader/ColorSpace.fxsub>
-
-shared texture2D ShadowMap : OFFSCREENRENDERTARGET;
-sampler2D ShadowSamp = sampler_state {
-    texture   = <ShadowMap>;
-    MinFilter = POINT;
-    MagFilter = POINT;
-    MipFilter = NONE;
-    AddressU  = CLAMP;
-    AddressV  = CLAMP;
-};
+#include <Shader/ShadowMapSampler.fxsub>
 
 // 頂点シェーダ
 void MainVS(
@@ -26,15 +17,31 @@ void MainVS(
 	oTexCoord = texCoord + ViewportOffset;
 }
 
-// ピクセルシェーダ
-float4 MainPS(float2 texCoord : TEXCOORD0) : COLOR0 {
+float4 DrawShadowMap(sampler2D samp, float2 uv) {
     // シャドウマップの内容を描画
-    float depth = tex2D(ShadowSamp, texCoord).r;
+    float depth = tex2D(samp, uv).r;
     if (depth == 0.0) {
         return float4(0.2, 0.2, 0.5, 1);
     }
     float3 outColor = float3(depth, depth, depth);
 	return float4(linear2srgb(outColor), 1.0);
+}
+
+// ピクセルシェーダ
+float4 MainPS(float2 texCoord : TEXCOORD0) : COLOR0 {
+	if (texCoord.y < 0.5) {
+		if (texCoord.x < 0.5) {
+			return DrawShadowMap(Shadow1Samp, texCoord * 2);
+		} else {
+			return DrawShadowMap(Shadow2Samp, texCoord * 2 - float2(1, 0));
+		}
+	} else {
+		if (texCoord.x < 0.5) {
+			return DrawShadowMap(Shadow3Samp, texCoord * 2 - float2(0, 1));
+		} else {
+			return DrawShadowMap(Shadow4Samp, texCoord * 2 - float2(1, 1));
+		}
+	}
 }
 
 //---------------------------------------------------------------------------------------------

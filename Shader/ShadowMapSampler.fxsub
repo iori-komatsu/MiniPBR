@@ -1,0 +1,113 @@
+#ifndef SHADER_SHADOW_MAP_SAMPLER_INCLUDED
+#define SHADER_SHADOW_MAP_SAMPLER_INCLUDED
+
+#include <Shader/ShadowMap.fxsub>
+
+shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET;
+shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET;
+shared texture2D ShadowMap3 : OFFSCREENRENDERTARGET;
+shared texture2D ShadowMap4 : OFFSCREENRENDERTARGET;
+sampler2D Shadow1Samp = sampler_state {
+    texture   = <ShadowMap1>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+sampler2D Shadow2Samp = sampler_state {
+    texture   = <ShadowMap2>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+sampler2D Shadow3Samp = sampler_state {
+    texture   = <ShadowMap3>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+sampler2D Shadow4Samp = sampler_state {
+    texture   = <ShadowMap4>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+
+float ShadowBias(float dotNL, float depth) {
+    return 0;
+    //float baseBias = clamp(0.002 * tan(acos(dotNL)), 0.001, 0.01);
+	//return baseBias;
+}
+
+float CastShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
+    // 参考文献:
+    // * opengl-tutorial "チュートリアル16：シャドウマッピング"
+    //   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
+
+    const int N_SAMPLES = 5;
+    const float2 POISSON_DISK[5] = {
+        float2(          0,           0),
+        float2(-0.94201624, -0.39906216),
+        float2( 0.94558609, -0.76890725),
+        float2(-0.09418410, -0.92938870),
+        float2( 0.34495938,  0.29387760),
+    };
+
+    // uv の周りをサンプリングしてどれぐらい影になっているかを調べる
+    float shadow = 0.0;
+    [unroll]
+    for (int i = 0; i < N_SAMPLES; ++i) {
+        float2 offset = POISSON_DISK[i] / 1000.0;
+        float lightDepth = tex2Dlod(samp, float4(uv + offset, 0, 0)).r;
+
+        if (lightDepth < objectDepth - ShadowBias(dotNL, objectDepth)) {
+            shadow += 1.0;
+        }
+    }
+
+    return 1 - shadow / N_SAMPLES;
+}
+
+// ライトの visibility を返す。
+float CastShadow(float dotNL, float3 worldPos) {
+    float4 lightViewPos = mul(float4(worldPos, 1), LightViewMatrix);
+    float objectDepth = lightViewPos.z;
+
+    float4 clipPos1 = mul(lightViewPos, LightProjectionMatrix[0]);
+    float4 clipPos2 = mul(lightViewPos, LightProjectionMatrix[1]);
+    float4 clipPos3 = mul(lightViewPos, LightProjectionMatrix[2]);
+    float4 clipPos4 = mul(lightViewPos, LightProjectionMatrix[3]);
+
+    float2 uv1 = (clipPos1.xy / clipPos1.w) * float2(1, -1) * 0.5 + 0.5;
+    float2 uv2 = (clipPos2.xy / clipPos2.w) * float2(1, -1) * 0.5 + 0.5;
+    float2 uv3 = (clipPos3.xy / clipPos3.w) * float2(1, -1) * 0.5 + 0.5;
+    float2 uv4 = (clipPos4.xy / clipPos4.w) * float2(1, -1) * 0.5 + 0.5;
+
+    int layer = 0;
+    if (all(saturate(uv4) == uv4)) { layer = 4; }
+    if (all(saturate(uv3) == uv3)) { layer = 3; }
+    if (all(saturate(uv2) == uv2)) { layer = 2; }
+    if (all(saturate(uv1) == uv1)) { layer = 1; }
+
+    if (layer == 0) { return 1.0; }
+
+    [branch]
+    if (layer == 1) {
+        return CastShadow(Shadow1Samp, uv1, objectDepth, dotNL);
+    } else if (layer == 2) {
+        return CastShadow(Shadow2Samp, uv2, objectDepth, dotNL);
+    } else if (layer == 3) {
+        return CastShadow(Shadow3Samp, uv3, objectDepth, dotNL);
+    } else {
+        return CastShadow(Shadow4Samp, uv4, objectDepth, dotNL);
+    }
+}
+
+#endif

@@ -5,6 +5,7 @@
 #include <Shader/Parameter/Light.fxsub>
 #include <Shader/Parameter/Material.fxsub>
 #include <Shader/ShadowMap.fxsub>
+#include <Shader/ShadowMapSampler.fxsub>
 
 // LightColor に対する AmbientColor の大きさ
 static const float AmbientCoeff = 0.2;
@@ -28,20 +29,7 @@ sampler ObjectTextureSampler = sampler_state {
 	ADDRESSV  = WRAP;
 };
 
-shared texture2D ShadowMap : OFFSCREENRENDERTARGET;
-sampler2D ShadowSamp = sampler_state {
-    texture   = <ShadowMap>;
-    MinFilter = POINT;
-    MagFilter = POINT;
-    MipFilter = NONE;
-    AddressU  = CLAMP;
-    AddressV  = CLAMP;
-};
-
 //---------------------------------------------------------------------------------------------
-
-//// シャドウバッファのサンプラ。"register(s0)"なのはMMDがs0を使っているから
-//sampler ShadowBufferSampler : register(s0);
 
 // 頂点シェーダ
 void MainVS(
@@ -71,50 +59,6 @@ void MainVS(
 	oTexCoord = texCoord;
 }
 
-// ライトの visibility を返す。
-float CastShadow(float dotNL, float3 worldPos, uniform bool selfShadow) {
-	if (!selfShadow) {
-		return 1.0;
-	}
-
-	float objectDepth;
-	float4 clipPos = ShadowMapCoord(worldPos, objectDepth);
-	float2 uv = (clipPos.xy / clipPos.w) * float2(1, -1) * 0.5 + 0.5;
-
-	// シャドウマップの外にあるならば 1.0 を返す
-	if (any(saturate(uv) != uv)) {
-		return 1.0;
-	}
-
-	// 参考文献:
-	// * opengl-tutorial "チュートリアル16：シャドウマッピング"
-	//   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
-
-	const int N_SAMPLES = 5;
-	const float2 POISSON_DISK[5] = {
-		float2(          0,           0),
-		float2(-0.94201624, -0.39906216),
-		float2( 0.94558609, -0.76890725),
-		float2(-0.09418410, -0.92938870),
-		float2( 0.34495938,  0.29387760),
-	};
-
-	// uv の周りをサンプリングしてどれぐらい影になっているかを調べる
-	float shadow = 0.0;
-	[unroll]
-	for (int i = 0; i < N_SAMPLES; ++i) {
-		float2 offset = POISSON_DISK[i] / 1000.0;
-		float lightDepth = tex2D(ShadowSamp, uv + offset).r;
-
-		if (lightDepth < objectDepth - ShadowBias(dotNL, objectDepth)) {
-			shadow += 1.0;
-		}
-	}
-
-	const float minVisibility = 0.4;
-	return lerp(1, minVisibility, shadow / N_SAMPLES);
-}
-
 float3 ShaderSurface(
 	float3 worldPos,
 	float3 baseColor,
@@ -131,7 +75,12 @@ float3 ShaderSurface(
 	float dotLH = saturate(dot(lightDir, h));
 	float dotVH = saturate(dot(viewDir, h));
 
-	float lightVisibility = CastShadow(dotNL, worldPos, selfShadow);
+	float lightVisibility;
+	if (selfShadow) {
+		lightVisibility = CastShadow(dotNL, worldPos);
+	} else {
+		lightVisibility = 1;
+	}
 
 	const float roughness = 0.4;
 	const float f0 = 0.04;

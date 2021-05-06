@@ -4,13 +4,11 @@
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
 
-static float MaxShadowDepth = 50;
 static float LightDistance = 1000;
 
 // ワールド空間の座標をライトから見た座標に変換するための行列を返す。
 float4x4 CalculateLightViewMatrix() {
-    // TODO: cameraDir と LightDir が平行な場合をケアする
-    float3 cameraDir = normalize(ViewMatrix._13_23_33 / ProjectionMatrix._33);
+    // TODO: up と LightDir が平行な場合をケアする
     float3 up = float3(0, 0, 1);
     float3 axisZ = LightDir;
     float3 axisX = normalize(cross(up, axisZ));
@@ -87,9 +85,9 @@ float4x4 MatrixOrthoOffCenterLH(
     );
 }
 
-float4x4 CalculateLightProjectionMatrix() {
+float4x4 CalculateLightProjectionMatrix(float nearZ, float farZ) {
     float4x4 nearPlane, farPlane;
-    GetFrustumCornersInLightViewSpace(0, MaxShadowDepth, nearPlane, farPlane);
+    GetFrustumCornersInLightViewSpace(nearZ, farZ, nearPlane, farPlane);
 
     float2 minCoord = nearPlane[0].xy;
     minCoord = min(minCoord, nearPlane[1].xy);
@@ -116,20 +114,35 @@ float4x4 CalculateLightProjectionMatrix() {
     );
 }
 
-static float4x4 LightProjectionMatrix = CalculateLightProjectionMatrix();
+// 視錐台の i 番目の分割点を返す。ただし i=0 で nearZ が返り、i=nSplit で farZ が返る。
+float CalculateFrustumSplit(int i, int nSplit, float nearZ, float farZ, float lambda) {
+    // 対数分割
+    float logNear = log(nearZ), logFar = log(farZ);
+    float r = (logFar - logNear) / nSplit;
+    float zl = exp(r*i + logNear);
+    // 等分割
+    float d = (farZ - nearZ) / nSplit;
+    float ze = d*i + nearZ;
 
-// シャドウマップを描画する際のクリップ座標を返す。
-float4 ShadowMapCoord(float3 worldPos, out float oDepth) {
-    float4 viewPos = mul(float4(worldPos, 1), LightViewMatrix);
-    oDepth = viewPos.z;
-    return mul(viewPos, LightProjectionMatrix);
+    return lerp(zl, ze, lambda);
 }
 
-float ShadowBias(float dotNL, float depth) {
-    float baseBias = clamp(0.002 * tan(acos(dotNL)), 0.001, 0.01);
-    float deltaX = abs(ddx(depth));
-    float deltaY = abs(ddy(depth));
-	return baseBias * MaxShadowDepth + deltaX + deltaY;
-}
+static float ShadowMapNearZ = 1;
+static float ShadowMapFarZ = 1000;
+static float ShadowMapLambda = 0.1;
+
+static float FrustumSplits[5] = {
+    ShadowMapNearZ,
+    CalculateFrustumSplit(1, 4, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(2, 4, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    CalculateFrustumSplit(3, 4, ShadowMapNearZ, ShadowMapFarZ, ShadowMapLambda),
+    ShadowMapFarZ,
+};
+static float4x4 LightProjectionMatrix[4] = {
+    CalculateLightProjectionMatrix(FrustumSplits[0], FrustumSplits[1]),
+    CalculateLightProjectionMatrix(FrustumSplits[1], FrustumSplits[2]),
+    CalculateLightProjectionMatrix(FrustumSplits[2], FrustumSplits[3]),
+    CalculateLightProjectionMatrix(FrustumSplits[3], FrustumSplits[4]),
+};
 
 #endif
