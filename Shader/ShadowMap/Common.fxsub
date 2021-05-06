@@ -3,7 +3,7 @@
 
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
-#include <Shader/ShadowMapConstants.fxsub>
+#include <Shader/ShadowMap/Constants.fxsub>
 
 // ワールド空間の座標をライトから見た座標に変換するための行列を返す。
 float4x4 CalculateLightViewMatrix() {

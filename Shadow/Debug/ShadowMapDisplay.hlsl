@@ -2,7 +2,7 @@
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
 #include <Shader/ColorSpace.fxsub>
-#include <Shader/ShadowMapSampler.fxsub>
+#include <Shader/ShadowMap/Sampling.fxsub>
 
 // 頂点シェーダ
 void MainVS(

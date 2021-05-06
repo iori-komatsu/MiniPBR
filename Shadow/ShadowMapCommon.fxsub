@@ -1,5 +1,5 @@
 #include <Shader/Common.fxsub>
-#include <Shader/ShadowMap.fxsub>
+#include <Shader/ShadowMap/Common.fxsub>
 
 void ShadowMapVS(
     in float4 pos : POSITION,

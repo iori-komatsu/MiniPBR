@@ -4,8 +4,7 @@
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
 #include <Shader/Parameter/Material.fxsub>
-#include <Shader/ShadowMap.fxsub>
-#include <Shader/ShadowMapSampler.fxsub>
+#include <Shader/ShadowMap/Sampling.fxsub>
 
 // LightColor ‚É‘Î‚·‚é AmbientColor ‚Ì‘å‚«‚³
 static const float AmbientCoeff = 0.2;

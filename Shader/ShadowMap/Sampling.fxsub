@@ -1,7 +1,7 @@
 #ifndef SHADER_SHADOW_MAP_SAMPLER_INCLUDED
 #define SHADER_SHADOW_MAP_SAMPLER_INCLUDED
 
-#include <Shader/ShadowMap.fxsub>
+#include <Shader/ShadowMap/Common.fxsub>
 
 shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET;
@@ -60,7 +60,7 @@ float CastShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
         float2( 0.34495938,  0.29387760),
     };
 
-    uv += 0.5 / SHADOW_MAP_SIZE;
+    uv += 0.5 / ShadowMapSize;
 
     // uv ‚ÌŽü‚è‚ðƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Ä‚Ç‚ê‚®‚ç‚¢‰e‚É‚È‚Á‚Ä‚¢‚é‚©‚ð’²‚×‚é
     float shadow = 0.0;

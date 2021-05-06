@@ -1,6 +1,6 @@
 #include <Shader/Common.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
-#include <Shader/ShadowMapConstants.fxsub>
+#include <Shader/ShadowMap/Constants.fxsub>
 
 float Script : STANDARDSGLOBAL <
     string ScriptOutput = "color";
@@ -30,7 +30,7 @@ sampler2D ScnSamp = sampler_state {
 shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap1";
     string Format = "R32F";
-    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    int2   Dimensions = {ShadowMapSize, ShadowMapSize};
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -41,7 +41,7 @@ shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET <
 shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap2";
     string Format = "R32F";
-    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    int2   Dimensions = {ShadowMapSize, ShadowMapSize};
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -52,7 +52,7 @@ shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET <
 shared texture2D ShadowMap3 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap3";
     string Format = "R32F";
-    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    int2   Dimensions = {ShadowMapSize, ShadowMapSize};
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;
@@ -63,7 +63,7 @@ shared texture2D ShadowMap3 : OFFSCREENRENDERTARGET <
 shared texture2D ShadowMap4 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap4";
     string Format = "R32F";
-    int2   Dimensions = {SHADOW_MAP_SIZE, SHADOW_MAP_SIZE};
+    int2   Dimensions = {ShadowMapSize, ShadowMapSize};
     float4 ClearColor = {0.0, 0.0, 0.0, 1.0};
     float  ClearDepth = 1.0;
     bool   AntiAlias = false;

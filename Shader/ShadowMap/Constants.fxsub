@@ -1,11 +1,10 @@
 #ifndef SHADER_SHADOW_MAP_CONSTANTS_INCLUDED
 #define SHADER_SHADOW_MAP_CONSTANTS_INCLUDED
 
-#define SHADOW_MAP_SIZE 2048
-
-static float LightDistance = 1000;
-static float ShadowMapNearZ = 1;
-static float ShadowMapFarZ = 1000;
-static float ShadowMapLambda = 0.03;
+static const int ShadowMapSize = 2048;
+static const float LightDistance = 1000;
+static const float ShadowMapNearZ = 1;
+static const float ShadowMapFarZ = 1000;
+static const float ShadowMapLambda = 0.03;
 
 #endif
