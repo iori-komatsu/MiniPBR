@@ -3,8 +3,7 @@
 
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
-
-static float LightDistance = 1000;
+#include <Shader/ShadowMapConstants.fxsub>
 
 // ワールド空間の座標をライトから見た座標に変換するための行列を返す。
 float4x4 CalculateLightViewMatrix() {
@@ -126,10 +125,6 @@ float CalculateFrustumSplit(int i, int nSplit, float nearZ, float farZ, float la
 
     return lerp(zl, ze, lambda);
 }
-
-static float ShadowMapNearZ = 1;
-static float ShadowMapFarZ = 1000;
-static float ShadowMapLambda = 0.1;
 
 static float FrustumSplits[5] = {
     ShadowMapNearZ,

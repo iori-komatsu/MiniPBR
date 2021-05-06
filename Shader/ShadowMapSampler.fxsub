@@ -41,7 +41,7 @@ sampler2D Shadow4Samp = sampler_state {
 };
 
 float ShadowBias(float dotNL, float depth) {
-    return 0;
+    return 0.1;
     //float baseBias = clamp(0.002 * tan(acos(dotNL)), 0.001, 0.01);
 	//return baseBias;
 }
@@ -59,6 +59,8 @@ float CastShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
         float2(-0.09418410, -0.92938870),
         float2( 0.34495938,  0.29387760),
     };
+
+    uv += 0.5 / SHADOW_MAP_SIZE;
 
     // uv ‚ÌŽü‚è‚ðƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Ä‚Ç‚ê‚®‚ç‚¢‰e‚É‚È‚Á‚Ä‚¢‚é‚©‚ð’²‚×‚é
     float shadow = 0.0;

@@ -1,3 +1,4 @@
+#include <Shader/Common.fxsub>
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
 #include <Shader/ColorSpace.fxsub>
@@ -23,6 +24,7 @@ float4 DrawShadowMap(sampler2D samp, float2 uv) {
     if (depth == 0.0) {
         return float4(0.2, 0.2, 0.5, 1);
     }
+	depth = exp(-3.0 * depth / LightDistance);
     float3 outColor = float3(depth, depth, depth);
 	return float4(linear2srgb(outColor), 1.0);
 }

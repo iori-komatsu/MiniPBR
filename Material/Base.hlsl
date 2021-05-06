@@ -75,9 +75,10 @@ float3 ShaderSurface(
 	float dotLH = saturate(dot(lightDir, h));
 	float dotVH = saturate(dot(viewDir, h));
 
+	const float minLightVisibility = 0.3;
 	float lightVisibility;
 	if (selfShadow) {
-		lightVisibility = CastShadow(dotNL, worldPos);
+		lightVisibility = lerp(minLightVisibility, 1.0, CastShadow(dotNL, worldPos));
 	} else {
 		lightVisibility = 1;
 	}

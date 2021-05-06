@@ -1,5 +1,6 @@
 #include <Shader/Common.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
+#include <Shader/ShadowMapConstants.fxsub>
 
 float Script : STANDARDSGLOBAL <
     string ScriptOutput = "color";
@@ -25,8 +26,6 @@ sampler2D ScnSamp = sampler_state {
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
-
-#define SHADOW_MAP_SIZE 2048
 
 shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap1";
