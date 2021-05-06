@@ -6,7 +6,7 @@
 #include <Shader/ShadowMap/Constants.fxsub>
 
 // ワールド空間の座標をライトから見た座標に変換するための行列を返す。
-float4x4 CalculateLightViewMatrix() {
+float4x4 CalculateLightViewRotateMatrix() {
     // TODO: up と LightDir が平行な場合をケアする
     float3 up = float3(0, 0, 1);
     float3 axisZ = LightDir;
@@ -16,17 +16,26 @@ float4x4 CalculateLightViewMatrix() {
     // 座標軸が (axisX, axisY, axisZ) となるように空間を回転する行列
     float3x3 rotation = transpose(float3x3(axisX, axisY, axisZ));
 
-    float3 origin = -LightDir * LightDistance;
-
     return float4x4(
         rotation[0], 0,
         rotation[1], 0,
         rotation[2], 0,
-        mul(-origin, rotation), 1
+        0, 0, 0, 1
     );
 }
 
-static float4x4 LightViewMatrix = CalculateLightViewMatrix();
+float4x4 CalculateLightViewTranslateMatrix() {
+    return float4x4(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, LightDistance, 1
+    );
+}
+
+static float4x4 LightViewRotateMatrix = CalculateLightViewRotateMatrix();
+static float4x4 LightViewTranslateMatrix = CalculateLightViewTranslateMatrix();
+static float4x4 LightViewMatrix = mul(LightViewRotateMatrix, LightViewTranslateMatrix);
 static float4x4 LightViewFromCameraViewMatrix = mul(InverseViewMatrix, LightViewMatrix);
 
 // 視錐台の8つの頂点のカメラビュー座標を返す。

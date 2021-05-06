@@ -114,8 +114,9 @@ float SampleShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
 
 // 指定した地点におけるライトの visibility を返す。
 float CastShadow(float3 worldPos, float dotNL) {
-    float4 lightViewPos = mul(float4(worldPos, 1), LightViewMatrix);
-    float objectDepth = lightViewPos.z;
+    float4 lightViewPos0 = mul(float4(worldPos, 1), LightViewRotateMatrix);
+    float objectDepth = lightViewPos0.z;
+    float4 lightViewPos = mul(lightViewPos0, LightViewTranslateMatrix);
 
     float4 clipPos1 = mul(lightViewPos, LightProjectionMatrix[0]);
     float4 clipPos2 = mul(lightViewPos, LightProjectionMatrix[1]);
