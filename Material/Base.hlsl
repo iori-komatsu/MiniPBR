@@ -84,7 +84,7 @@ float3 ShaderSurface(
     }
 
     const float specularRoughness = 0.4;
-    const float diffuseRoughness = 0.7;
+    const float diffuseRoughness = 0.9;
     const float f0 = 0.04;
     float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, specularRoughness, f0);
     float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, dotLV, dotLH, baseColor, diffuseRoughness);

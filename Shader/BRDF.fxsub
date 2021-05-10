@@ -36,13 +36,10 @@ float SchlickF90(float cosine, float f90) {
 }
 
 float3 DiffuseBRDF(float dotNL, float dotNV, float dotLV, float dotLH, float3 albedo, float roughness) {
-    return OrenNayarDiffuseBRDF(dotNL, dotNV, dotLV, albedo, roughness);
-    /*
-    // Lambert と Burley Diffuse を組み合わせる
-    float3 base = LambertDiffuseBRDF(dotNL, albedo);
-    float f90 = 0.5 + 3.5 * sq(dotLH) * roughness; // オリジナルの式よりも f90 を大きくする
+    // Oren-Nayer と Burley Diffuse を組み合わせる
+    float3 base = OrenNayarDiffuseBRDF(dotNL, dotNV, dotLV, albedo, roughness);
+    float f90 = 0.5 + 2.0 * sq(dotLH) * roughness;
     return base * SchlickF90(dotNL, f90) * SchlickF90(dotNV, f90);
-    */
 }
 
 float3 SpecularD(float dotNH, float roughness) {
