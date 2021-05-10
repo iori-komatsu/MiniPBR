@@ -73,6 +73,7 @@ float3 ShaderSurface(
     float dotNH = saturate(dot(normal, h));
     float dotLH = saturate(dot(lightDir, h));
     float dotVH = saturate(dot(viewDir, h));
+    float dotLV = saturate(dot(lightDir, viewDir));
 
     const float minLightVisibility = 0.3;
     float lightVisibility;
@@ -82,10 +83,11 @@ float3 ShaderSurface(
         lightVisibility = 1;
     }
 
-    const float roughness = 0.4;
+    const float specularRoughness = 0.4;
+    const float diffuseRoughness = 0.7;
     const float f0 = 0.04;
-    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, roughness, f0);
-    float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, dotLH, baseColor, roughness);
+    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, specularRoughness, f0);
+    float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, dotLV, dotLH, baseColor, diffuseRoughness);
 
     return (fSpecular + fDiffuse) * lightIrradiance * lightVisibility
          + AmbientIrradiance * baseColor;
