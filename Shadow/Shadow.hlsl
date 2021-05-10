@@ -201,7 +201,7 @@ void VS(
     out float2 oCoord : TEXCOORD0
 ) {
     oPos = pos;
-    oCoord = coord.xy + ViewportOffset;
+    oCoord = PixelCoordToTexelCoord(coord.xy);
 }
 
 float4 PS(in float2 coord: TEXCOORD0) : COLOR {
@@ -230,4 +230,5 @@ technique PostEffect <
         PixelShader  = compile ps_3_0 PS();
     }
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////

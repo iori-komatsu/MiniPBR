@@ -6,5 +6,7 @@ static const float LightDistance = 21000;
 static const float ShadowMapNearZ = 1;
 static const float ShadowMapFarZ = 30000;
 static const float ShadowMapLambda = 0.0005;
+static const float ShadowMapBiasEps = 0.000001;
+static const float ShadowMapBiasMax = 0.00002;
 
 #endif

@@ -2,6 +2,7 @@
 #define SHADER_SHADOW_MAP_SAMPLER_INCLUDED
 
 #include <Shader/ShadowMap/Common.fxsub>
+#include <Shader/Parameter/Viewport.fxsub>
 
 shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET;
@@ -14,7 +15,7 @@ shared texture2D ShadowMap8 : OFFSCREENRENDERTARGET;
 sampler2D Shadow1Samp = sampler_state {
     texture   = <ShadowMap1>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -22,7 +23,7 @@ sampler2D Shadow1Samp = sampler_state {
 sampler2D Shadow2Samp = sampler_state {
     texture   = <ShadowMap2>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -30,7 +31,7 @@ sampler2D Shadow2Samp = sampler_state {
 sampler2D Shadow3Samp = sampler_state {
     texture   = <ShadowMap3>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -38,7 +39,7 @@ sampler2D Shadow3Samp = sampler_state {
 sampler2D Shadow4Samp = sampler_state {
     texture   = <ShadowMap4>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -46,7 +47,7 @@ sampler2D Shadow4Samp = sampler_state {
 sampler2D Shadow5Samp = sampler_state {
     texture   = <ShadowMap5>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -54,7 +55,7 @@ sampler2D Shadow5Samp = sampler_state {
 sampler2D Shadow6Samp = sampler_state {
     texture   = <ShadowMap6>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -62,7 +63,7 @@ sampler2D Shadow6Samp = sampler_state {
 sampler2D Shadow7Samp = sampler_state {
     texture   = <ShadowMap7>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -70,22 +71,27 @@ sampler2D Shadow7Samp = sampler_state {
 sampler2D Shadow8Samp = sampler_state {
     texture   = <ShadowMap8>;
     MinFilter = POINT;
-    MagFilter = POINT;
+    MagFilter = LINEAR;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
 
-float ShadowBias(float dotNL, float depth) {
-    return 0.1;
-    //float baseBias = clamp(0.002 * tan(acos(dotNL)), 0.001, 0.01);
-    //return baseBias;
+float ShadowMapBias(float2 uv, int layer, float dotNL) {
+    float3 projScaling = LightProjectionMatrix[layer-1]._11_22_33;
+    float2 gridCenter = round(uv - 0.5/ShadowMapSize) + 0.5/ShadowMapSize;
+    float2 diff = (uv - gridCenter) / projScaling.xy;
+    float eps = ShadowMapBiasEps / projScaling.z;
+    float maxBias = ShadowMapBiasMax / projScaling.z;
+    return clamp(length(diff) * tan(acos(abs(dotNL))), 0, maxBias) + eps;
 }
 
-float SampleShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
+float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, float dotNL) {
     // 参考文献:
     // * opengl-tutorial "チュートリアル16：シャドウマッピング"
     //   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
+    // * Adaptive Depth Bias for Shadow Maps
+    //   http://jcgt.org/published/0003/04/08/paper-lowres.pdf
 
     const int N_SAMPLES = 4;
     const float2 POISSON_DISK[4] = {
@@ -97,6 +103,8 @@ float SampleShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
 
     uv += 0.5 / ShadowMapSize;
 
+    float bias = ShadowMapBias(uv, layer, dotNL);
+
     // uv の周りをサンプリングしてどれぐらい影になっているかを調べる
     float shadow = 0.0;
     [unroll]
@@ -104,7 +112,7 @@ float SampleShadow(sampler2D samp, float2 uv, float objectDepth, float dotNL) {
         float2 offset = POISSON_DISK[i] / 1000.0;
         float lightDepth = tex2Dlod(samp, float4(uv + offset, 0, 0)).r;
 
-        if (lightDepth < objectDepth - ShadowBias(dotNL, objectDepth)) {
+        if (lightDepth < objectDepth - bias) {
             shadow += 1.0;
         }
     }
@@ -150,21 +158,21 @@ float CastShadow(float3 worldPos, float dotNL) {
 
     [branch]
     if (layer == 1) {
-        return SampleShadow(Shadow1Samp, uv1, objectDepth, dotNL);
+        return SampleShadow(Shadow1Samp, uv1, layer, objectDepth, dotNL);
     } else if (layer == 2) {
-        return SampleShadow(Shadow2Samp, uv2, objectDepth, dotNL);
+        return SampleShadow(Shadow2Samp, uv2, layer, objectDepth, dotNL);
     } else if (layer == 3) {
-        return SampleShadow(Shadow3Samp, uv3, objectDepth, dotNL);
+        return SampleShadow(Shadow3Samp, uv3, layer, objectDepth, dotNL);
     } else if (layer == 4) {
-        return SampleShadow(Shadow4Samp, uv4, objectDepth, dotNL);
+        return SampleShadow(Shadow4Samp, uv4, layer, objectDepth, dotNL);
     } else if (layer == 5) {
-        return SampleShadow(Shadow5Samp, uv5, objectDepth, dotNL);
+        return SampleShadow(Shadow5Samp, uv5, layer, objectDepth, dotNL);
     } else if (layer == 6) {
-        return SampleShadow(Shadow6Samp, uv6, objectDepth, dotNL);
+        return SampleShadow(Shadow6Samp, uv6, layer, objectDepth, dotNL);
     } else if (layer == 7) {
-        return SampleShadow(Shadow7Samp, uv7, objectDepth, dotNL);
+        return SampleShadow(Shadow7Samp, uv7, layer, objectDepth, dotNL);
     } else {
-        return SampleShadow(Shadow8Samp, uv8, objectDepth, dotNL);
+        return SampleShadow(Shadow8Samp, uv8, layer, objectDepth, dotNL);
     }
 }
 
