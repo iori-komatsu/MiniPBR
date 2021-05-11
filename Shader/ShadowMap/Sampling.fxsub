@@ -15,7 +15,7 @@ shared texture2D ShadowMap8 : OFFSCREENRENDERTARGET;
 sampler2D Shadow1Samp = sampler_state {
     texture   = <ShadowMap1>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -23,7 +23,7 @@ sampler2D Shadow1Samp = sampler_state {
 sampler2D Shadow2Samp = sampler_state {
     texture   = <ShadowMap2>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -31,7 +31,7 @@ sampler2D Shadow2Samp = sampler_state {
 sampler2D Shadow3Samp = sampler_state {
     texture   = <ShadowMap3>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -39,7 +39,7 @@ sampler2D Shadow3Samp = sampler_state {
 sampler2D Shadow4Samp = sampler_state {
     texture   = <ShadowMap4>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -47,7 +47,7 @@ sampler2D Shadow4Samp = sampler_state {
 sampler2D Shadow5Samp = sampler_state {
     texture   = <ShadowMap5>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -55,7 +55,7 @@ sampler2D Shadow5Samp = sampler_state {
 sampler2D Shadow6Samp = sampler_state {
     texture   = <ShadowMap6>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -63,7 +63,7 @@ sampler2D Shadow6Samp = sampler_state {
 sampler2D Shadow7Samp = sampler_state {
     texture   = <ShadowMap7>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
@@ -71,18 +71,15 @@ sampler2D Shadow7Samp = sampler_state {
 sampler2D Shadow8Samp = sampler_state {
     texture   = <ShadowMap8>;
     MinFilter = POINT;
-    MagFilter = LINEAR;
+    MagFilter = POINT;
     MipFilter = NONE;
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
 
-float ShadowMapBias(float2 uv, int layer, float dotNL) {
-    float3 projScaling = LightProjectionMatrix[layer-1]._11_22_33;
+float ShadowMapBias(float2 uv, float dotNL, float3 projScaling, float eps, float maxBias) {
     float2 gridCenter = round(uv - 0.5/ShadowMapSize) + 0.5/ShadowMapSize;
     float2 diff = (uv - gridCenter) / projScaling.xy;
-    float eps = ShadowMapBiasEps / projScaling.z;
-    float maxBias = ShadowMapBiasMax / projScaling.z;
     return clamp(length(diff) * tan(acos(abs(dotNL))), 0, maxBias) + eps;
 }
 
@@ -103,14 +100,18 @@ float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, floa
 
     uv += 0.5 / ShadowMapSize;
 
-    float bias = ShadowMapBias(uv, layer, dotNL);
+    float3 projScaling = LightProjectionMatrix[layer-1]._11_22_33;
+    float eps = ShadowMapBiasEps / projScaling.z;
+    float maxBias = ShadowMapBiasMax / projScaling.z;
 
     // uv ‚ÌŽü‚è‚ðƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Ä‚Ç‚ê‚®‚ç‚¢‰e‚É‚È‚Á‚Ä‚¢‚é‚©‚ð’²‚×‚é
     float shadow = 0.0;
     [unroll]
     for (int i = 0; i < N_SAMPLES; ++i) {
         float2 offset = POISSON_DISK[i] / 1000.0;
-        float lightDepth = tex2Dlod(samp, float4(uv + offset, 0, 0)).r;
+        float2 p = uv + offset;
+        float lightDepth = tex2Dlod(samp, float4(p, 0, 0)).r;
+        float bias = ShadowMapBias(p, dotNL, projScaling, eps, maxBias);
 
         if (lightDepth < objectDepth - bias) {
             shadow += 1.0;
