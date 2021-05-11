@@ -1,6 +1,22 @@
 #ifndef SHADER_SHADOW_MAP_INCLUDED
 #define SHADER_SHADOW_MAP_INCLUDED
 
+// 参考文献:
+//
+// * "チュートリアル16：シャドウマッピング". opengl-tutorial. 
+//   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
+//
+// * "Cascading Shadow Maps". Microsoft Docs. 2018-05-31.
+//   https://docs.microsoft.com/en-us/windows/win32/dxtecharts/cascaded-shadow-maps
+//
+// * "Common Techniques to Improve Shadow Depth Maps". Microsoft Docs. 2018-05-31.
+//   https://docs.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps
+//
+// * Hang Dou; Yajie Yan; Ethan Kerzner; Zeng Dai; Chris Wyman.
+//   "Adaptive Depth Bias for Shadow Maps".
+//   Journal of Computer Graphics Techniques 2014, vol.3, no.4.
+//   http://jcgt.org/published/0003/04/08/paper-lowres.pdf
+
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
 #include <Shader/ShadowMap/Constants.fxsub>

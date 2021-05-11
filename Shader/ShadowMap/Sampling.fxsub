@@ -78,18 +78,12 @@ sampler2D Shadow8Samp = sampler_state {
 };
 
 float ShadowMapBias(float2 uv, float dotNL, float3 projScaling, float eps, float maxBias) {
-    float2 gridCenter = round(uv - 0.5/ShadowMapSize) + 0.5/ShadowMapSize;
+    float2 gridCenter = round(uv - ShadowMapOffset) + ShadowMapOffset;
     float2 diff = (uv - gridCenter) / projScaling.xy;
     return clamp(length(diff) * tan(acos(abs(dotNL))), 0, maxBias) + eps;
 }
 
 float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, float dotNL) {
-    // 参考文献:
-    // * opengl-tutorial "チュートリアル16：シャドウマッピング"
-    //   http://www.opengl-tutorial.org/jp/intermediate-tutorials/tutorial-16-shadow-mapping/
-    // * Adaptive Depth Bias for Shadow Maps
-    //   http://jcgt.org/published/0003/04/08/paper-lowres.pdf
-
     const int N_SAMPLES = 4;
     const float2 POISSON_DISK[4] = {
         float2(-0.94201624, -0.39906216),
@@ -98,7 +92,7 @@ float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, floa
         float2( 0.34495938,  0.29387760),
     };
 
-    uv += 0.5 / ShadowMapSize;
+    uv += ShadowMapOffset;
 
     float3 projScaling = LightProjectionMatrix[layer-1]._11_22_33;
     float eps = ShadowMapBiasEps / projScaling.z;

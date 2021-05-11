@@ -2,6 +2,7 @@
 #define SHADER_SHADOW_MAP_CONSTANTS_INCLUDED
 
 static const int ShadowMapSize = 2048;
+static const float ShadowMapOffset = 0.5 / ShadowMapSize;
 static const float LightDistance = 21000;
 static const float ShadowMapNearZ = 1;
 static const float ShadowMapFarZ = 30000;

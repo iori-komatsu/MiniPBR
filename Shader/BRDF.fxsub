@@ -2,8 +2,19 @@
 #define SHADER_BRDF_INCLUDED
 
 // éQçlï∂å£
-// * Real Shading in Unreal Engine 4
+//
+// * Brian Karis; Epic Games.
+//   "Real Shading in Unreal Engine 4".
+//   SIGGRAPH 2013 Course: Physically Based Shading in Theory and Practice.
 //   https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
+//
+// * Brent Burley; Walt Disney Animation Studios.
+//   "Physically Based Shading at Disney".
+//   SIGGRAPH 2012 Course: Practical Physically Based Shading in Film and Game Production.
+//   https://www.disneyanimation.com/publications/physically-based-shading-at-disney/
+//
+// * Yasuhiro Fujii. "A tiny improvement of Oren-Nayar reflectance model".
+//   https://mimosa-pudica.net/improved-oren-nayar.html
 
 #include <Shader/Math.fxsub>
 
