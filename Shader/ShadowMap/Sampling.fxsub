@@ -77,10 +77,10 @@ sampler2D Shadow8Samp = sampler_state {
     AddressV  = CLAMP;
 };
 
-float ShadowMapBias(float2 uv, float dotNL, float3 projScaling, float eps, float maxBias) {
+float ShadowMapBias(float2 uv, float tanNL, float3 projScaling, float eps, float maxBias) {
     float2 gridCenter = round(uv - ShadowMapOffset) + ShadowMapOffset;
     float2 diff = (uv - gridCenter) / projScaling.xy;
-    return clamp(length(diff) * tan(acos(abs(dotNL))), 0, maxBias) + eps;
+    return clamp(length(diff) * tanNL, 0, maxBias) + eps;
 }
 
 float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, float dotNL) {
@@ -97,6 +97,7 @@ float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, floa
     float3 projScaling = LightProjectionMatrix[layer-1]._11_22_33;
     float eps = ShadowMapBiasEps / projScaling.z;
     float maxBias = ShadowMapBiasMax / projScaling.z;
+    float tanNL = tan(acos(abs(dotNL)));
 
     // uv ‚ÌŽü‚è‚ðƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Ä‚Ç‚ê‚®‚ç‚¢‰e‚É‚È‚Á‚Ä‚¢‚é‚©‚ð’²‚×‚é
     float shadow = 0.0;
@@ -105,7 +106,7 @@ float SampleShadow(sampler2D samp, float2 uv, int layer, float objectDepth, floa
         float2 offset = POISSON_DISK[i] / 1000.0;
         float2 p = uv + offset;
         float lightDepth = tex2Dlod(samp, float4(p, 0, 0)).r;
-        float bias = ShadowMapBias(p, dotNL, projScaling, eps, maxBias);
+        float bias = ShadowMapBias(p, tanNL, projScaling, eps, maxBias);
 
         if (lightDepth < objectDepth - bias) {
             shadow += 1.0;
