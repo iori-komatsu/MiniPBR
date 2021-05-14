@@ -9,7 +9,7 @@
 // LightColor に対する AmbientColor の大きさ
 static const float AmbientCoeff = 0.2;
 
-static float3 LightIrradiance = 6.0 * LightColor;
+static float3 LightIrradiance = PI * LightColor;
 static float3 AmbientIrradiance = LightIrradiance * AmbientCoeff;
 
 bool     parthf;   // パースペクティブフラグ
@@ -127,7 +127,7 @@ float4 MainPS(
         LightIrradiance,
         selfShadow
     );
-    return float4(linear2srgb(outColor), baseColor.a);
+    return float4(outColor, baseColor.a);
 }
 
 //---------------------------------------------------------------------------------------------
