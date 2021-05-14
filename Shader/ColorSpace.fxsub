@@ -9,4 +9,9 @@ float3 linear2srgb(float3 rgb) {
     return rgb < 0.0031308 ? rgb*12.92 : pow(rgb, 1.0/2.4) * 1.055 - 0.055;
 }
 
+float Luminance(float3 rgb) {
+    const float3 k = float3(0.2126, 0.7152, 0.0722);
+    return dot(k, rgb);
+}
+
 #endif

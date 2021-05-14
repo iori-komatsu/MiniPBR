@@ -190,10 +190,6 @@ sampler2D Shadow8Samp = sampler_state {
 
 //-------------------------------------------------------------------------------------------------
 
-// レンダリングターゲットのクリア値
-float4 ClearColor = {1, 1, 1, 0};
-float ClearDepth  = 1.0;
-
 void VS(
     in float4 pos : POSITION,
     in float4 coord : TEXCOORD0,
@@ -209,6 +205,10 @@ float4 PS(in float2 coord: TEXCOORD0) : COLOR {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+// レンダリングターゲットのクリア値
+float4 ClearColor = {1, 1, 1, 0};
+float ClearDepth  = 1.0;
 
 technique PostEffect <
     string Script = 
