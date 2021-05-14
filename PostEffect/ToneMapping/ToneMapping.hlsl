@@ -4,8 +4,7 @@
 
 // 0: Linear
 // 1: ACES
-// 2: Color-ratio preserving ACES
-#define TONE_MAPPING 0
+#define TONE_MAPPING 1
 
 // パラメータ操作用オブジェクト
 float  Si   : CONTROLOBJECT < string name = "(self)"; string item = "Si";   >; // スケール
@@ -50,35 +49,52 @@ void VS(
     oCoord = PixelCoordToTexelCoord(coord.xy);
 }
 
-// 出典:
-// Krzysztof Narkowicz. "ACES Filmic Tone Mapping Curve". 2016-01-06.
-// https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
-#define DEFINE_ACES(floatN) \
-    inline floatN ACES(floatN x) { \
-        return saturate((x*(2.51f*x+0.03f))/(x*(2.43f*x+0.59f)+0.14f)); \
-    }
-DEFINE_ACES(float)
-DEFINE_ACES(float3)
+//-------------------------------------------------------------------------------------------------
 
-#if TONE_MAPPING == 1
-    inline float3 ToneMapping(float3 rgb) {
-        return ACES(rgb);
-    }
-#elif TONE_MAPPING == 2
-    inline float3 ToneMapping(float3 rgb) {
-        float inL = Luminance(rgb);
-        float outL = ACES(inL);
-        return (outL / inL) * rgb;
-    }
-#else
-    inline float3 ToneMapping(float3 rgb) {
-        return rgb;
-    }
-#endif
+// 出典:
+// Stephen Hill. BakingLab/ACES.hlsl.
+// https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
+// (MIT License)
+
+// sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
+static const float3x3 ACESInputMat = {
+    {0.59719, 0.35458, 0.04823},
+    {0.07600, 0.90834, 0.01566},
+    {0.02840, 0.13383, 0.83777}
+};
+
+// ODT_SAT => XYZ => D60_2_D65 => sRGB
+static const float3x3 ACESOutputMat = {
+    { 1.60475, -0.53108, -0.07367},
+    {-0.10208,  1.10813, -0.00605},
+    {-0.00327, -0.07276,  1.07602}
+};
+
+float3 RRTAndODT(float3 v) {
+    float3 a = v * (v + 0.0245786f) - 0.000090537f;
+    float3 b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
+    return a / b;
+}
+
+float3 ACES(float3 color) {
+    return saturate(
+        mul(ACESOutputMat,
+            RRTAndODT(
+                mul(ACESInputMat, color)
+            )
+        )
+    );
+}
+
+//-------------------------------------------------------------------------------------------------
 
 float4 PS(in float2 coord: TEXCOORD0) : COLOR {
     float4 inColor = tex2D(ScnSamp, coord);
-    float3 outColor = ToneMapping(inColor.rgb * Exposure);
+#if TONE_MAPPING == 1
+    float3 outColor = ACES(inColor.rgb * Exposure);
+#else
+    float3 outColor = inColor.rgb * Exposure;
+#endif
     outColor = linear2srgb(outColor);
     return float4(outColor, inColor.a);
 }
