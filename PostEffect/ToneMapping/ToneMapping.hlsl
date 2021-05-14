@@ -91,7 +91,7 @@ float3 ACES(float3 color) {
 float4 PS(in float2 coord: TEXCOORD0) : COLOR {
     float4 inColor = tex2D(ScnSamp, coord);
 #if TONE_MAPPING == 1
-    float3 outColor = ACES(inColor.rgb * Exposure);
+    float3 outColor = ACES(inColor.rgb * Exposure) * 1.8;
 #else
     float3 outColor = inColor.rgb * Exposure;
 #endif
