@@ -7,6 +7,12 @@
 // 2: Color-ratio preserving ACES
 #define TONE_MAPPING 0
 
+// パラメータ操作用オブジェクト
+float  Si   : CONTROLOBJECT < string name = "(self)"; string item = "Si";   >; // スケール
+
+// 露光 (アクセサリの Si はUIで指定された値の10倍が取得されるので、0.1倍してもとに戻す)
+static float Exposure = Si * 0.1;
+
 float Script : STANDARDSGLOBAL <
     string ScriptOutput = "color";
     string ScriptClass = "scene";
@@ -72,7 +78,7 @@ DEFINE_ACES(float3)
 
 float4 PS(in float2 coord: TEXCOORD0) : COLOR {
     float4 inColor = tex2D(ScnSamp, coord);
-    float3 outColor = ToneMapping(inColor.rgb);
+    float3 outColor = ToneMapping(inColor.rgb * Exposure);
     outColor = linear2srgb(outColor);
     return float4(outColor, inColor.a);
 }
