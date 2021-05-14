@@ -9,6 +9,6 @@ float3 LightDir : DIRECTION < string Object = "Light"; >;
 // LightDiffuse は常に 0 か 1 が設定されており、LightSpecular は値が 1 で clamp されるため、
 // LightAmbient の値を使う。ただしアクセサリの場合、LightAmbient は値が 0.3 だけ引かれているので注意。
 float3 _LightAmbient : AMBIENT  < string Object = "Light"; >;
-static float3 LightColor = srgb2linear(_LightAmbient);
+static float3 LightColor = sRGB2Linear(_LightAmbient);
 
 #endif

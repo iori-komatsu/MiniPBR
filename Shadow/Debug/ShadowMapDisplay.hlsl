@@ -27,7 +27,7 @@ float4 DrawShadowMap(sampler2D samp, float2 uv) {
     depth = (depth / 50) + 0.5;
     depth = exp(-depth);
     float3 outColor = float3(depth, depth, depth);
-    return float4(linear2srgb(outColor), 1.0);
+    return float4(Linear2sRGB(outColor), 1.0);
 }
 
 // ピクセルシェーダ

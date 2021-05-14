@@ -105,7 +105,7 @@ float4 BaseColor(float2 tex, uniform bool useTexture)
             TextureMulValue.a + TextureAddValue.a);
         baseColor *= texColor;
     }
-    return float4(srgb2linear(baseColor.rgb), baseColor.a);
+    return float4(sRGB2Linear(baseColor.rgb), baseColor.a);
 }
 
 // ピクセルシェーダ

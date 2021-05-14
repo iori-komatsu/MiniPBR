@@ -95,7 +95,7 @@ float4 PS(in float2 coord: TEXCOORD0) : COLOR {
 #else
     float3 outColor = inColor.rgb * Exposure;
 #endif
-    outColor = linear2srgb(outColor);
+    outColor = Linear2sRGB(outColor);
     return float4(outColor, inColor.a);
 }
 
