@@ -3,7 +3,10 @@
 #include <Shader/Parameter/Viewport.fxsub>
 #include <Shader/ColorSpace.fxsub>
 
-static const float BloomThreshold = 1.0;
+static const float BloomThreshold1 = 1.0;
+static const float BloomThreshold2 = 1.2;
+static const int   BlurRadius = 3;
+static const float BlurStdDev = 2;
 
 static const float BrightMapViewportRatio[4] = {
     1.0, 1.0, 0.5, 0.25
@@ -44,31 +47,39 @@ void VS(
     uniform in float2 viewportRatio // 入力テクスチャの ViewportRatio
 ) {
     oPos = pos;
-    oCoord = ViewportCoordToTexelCoord(coord.xy);
+    oCoord = ViewportCoordToTexelCoord(coord.xy, viewportRatio);
 }
 
 float4 ExtractBrightAreaPS(in float2 coord : TEXCOORD0) : COLOR {
     float4 inColor = tex2D(ScnSamp, coord);
-    float3 outColor = step(BloomThreshold, Luminance(inColor.rgb)) * inColor.rgb;
+    float luminance = Luminance(inColor.rgb);
+    float alpha = saturate((luminance - BloomThreshold1) / (BloomThreshold2 - BloomThreshold1));
+    float3 outColor = smoothstep(0, inColor.rgb, alpha);
     return float4(outColor, inColor.a);
 }
 
-static const int BlurRadius = 3;
+inline float Gaussian(float x, float variance) {
+    return exp(-sq(x) / (2 * variance));
+}
 
 float4 XBlurPS(
     in float2 coord : TEXCOORD0,
     uniform in sampler2D samp,     // 入力テクスチャのサンプラー
     uniform in float viewportRatio // 入力テクスチャの ViewportRatio
 ) : COLOR {
-    float texelWidth = 1.0 / (ViewportSize.x * viewportRatio);
+    const float variance = sq(BlurStdDev);
 
-    const float variance = sq(5);
-    float3 c = float3(0, 0, 0);
-    float z = 0;
-    for (int x = -BlurRadius; x <= BlurRadius; x++) {
-        float w = exp(-sq(x) / (2 * variance));
-        c += w * tex2D(samp, coord + float2(texelWidth * x, 0)).rgb;
-        z += w;
+    float texelSize = 1.0 / (ViewportSize.x * viewportRatio);
+
+    float3 c = tex2D(samp, coord).rgb; // Gaussian(0, σ^2) == 1
+    float z = 1;
+
+    for (int x = 1; x <= BlurRadius; x++) {
+        float w = Gaussian(x, variance);
+        float offset = texelSize * (x + 0.5);
+        c += w * tex2D(samp, coord + float2(offset, 0)).rgb;
+        c += w * tex2D(samp, coord - float2(offset, 0)).rgb;
+        z += 2*w;
     }
 
     return float4(c / z, 1.0);
@@ -79,15 +90,19 @@ float4 YBlurPS(
     uniform in sampler2D samp,     // 入力テクスチャのサンプラー
     uniform in float viewportRatio // 入力テクスチャの ViewportRatio
 ) : COLOR {
-    float texelHeight = 1.0 / (ViewportSize.y * viewportRatio);
+    const float variance = sq(BlurStdDev);
 
-    const float variance = sq(5);
-    float3 c = 0;
-    float z = 0;
-    for (int y = -BlurRadius; y <= BlurRadius; y++) {
-        float w = exp(-sq(y) / (2 * variance));
-        c += w * tex2D(samp, coord + float2(0, texelHeight * y)).rgb;
-        z += w;
+    float texelSize = 1.0 / (ViewportSize.y * viewportRatio);
+
+    float3 c = tex2D(samp, coord).rgb; // Gaussian(0, σ^2) == 1
+    float z = 1;
+
+    for (int y = 1; y <= BlurRadius; y++) {
+        float w = Gaussian(y, variance);
+        float offset = texelSize * (y + 0.5);
+        c += w * tex2D(samp, coord + float2(0, offset)).rgb;
+        c += w * tex2D(samp, coord - float2(0, offset)).rgb;
+        z += 2*w;
     }
 
     return float4(c / z, 1.0);
@@ -96,10 +111,14 @@ float4 YBlurPS(
 float4 SumPS(
     in float2 coord : TEXCOORD0
 ) : COLOR {
+#if 1
     float3 c = tex2D(ScnSamp, coord).rgb;
     c += tex2D(BrightSamp1Y, coord).rgb;
     c += tex2D(BrightSamp2Y, coord).rgb;
     c += tex2D(BrightSamp3Y, coord).rgb;
+#else
+    float3 c = tex2D(BrightSamp0, coord).rgb;
+#endif
     return float4(c, 1.0);
 }
 
