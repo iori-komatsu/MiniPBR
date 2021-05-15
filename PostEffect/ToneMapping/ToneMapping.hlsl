@@ -93,7 +93,7 @@ float4 PS(in float2 coord: TEXCOORD0) : COLOR {
 #if TONE_MAPPING == 1
     float3 outColor = ACES(inColor.rgb * Exposure) * 1.8;
 #else
-    float3 outColor = inColor.rgb * Exposure;
+    float3 outColor = saturate(inColor.rgb * Exposure);
 #endif
     outColor = Linear2sRGB(outColor);
     return float4(outColor, inColor.a);
