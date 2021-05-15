@@ -1,10 +1,12 @@
+#ifndef MATERIAL_BASE_INCLUDED
+#define MATERIAL_BASE_INCLUDED
+
 #include <Shader/Common.fxsub>
 #include <Shader/BRDF.fxsub>
 #include <Shader/ColorSpace.fxsub>
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>
 #include <Shader/Parameter/Material.fxsub>
-#include <Shader/ShadowMap/Sampling.fxsub>
 
 // LightColor に対する AmbientColor の大きさ
 static const float AmbientCoeff = 0.2;
@@ -66,36 +68,10 @@ float3 ShaderSurface(
     float3 lightDir,
     float3 lightIrradiance,
     uniform bool selfShadow
-) {
-    float3 h = normalize(viewDir + lightDir);
-    float dotNL = saturate(dot(normal, lightDir));
-    float dotNV = saturate(dot(normal, viewDir));
-    float dotNH = saturate(dot(normal, h));
-    float dotLH = saturate(dot(lightDir, h));
-    float dotVH = saturate(dot(viewDir, h));
-    float dotLV = saturate(dot(lightDir, viewDir));
+);
 
-    const float minLightVisibility = 0.3;
-    float lightVisibility;
-    if (selfShadow) {
-        lightVisibility = lerp(minLightVisibility, 1.0, CastShadow(worldPos, dot(normal, lightDir)));
-    } else {
-        lightVisibility = 1;
-    }
-
-    const float specularRoughness = 0.35;
-    const float diffuseRoughness = 0.85;
-    const float f0 = 0.04;
-    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, specularRoughness, f0);
-    float3 fDiffuse = DiffuseBRDF(dotNL, dotNV, dotLV, dotLH, baseColor, diffuseRoughness);
-
-    return (fSpecular + fDiffuse) * lightIrradiance * lightVisibility
-         + AmbientIrradiance * baseColor;
-}
-
-float4 BaseColor(float2 tex, uniform bool useTexture)
-{
-    float4 baseColor = float4(MaterialAmbient, MaterialDiffuse.a);
+float4 BaseColor(float2 tex, uniform bool useTexture) {
+    float4 baseColor = saturate(float4(MaterialAmbient + MaterialEmmisive, MaterialDiffuse.a));
     if (useTexture) {
         float4 texColor = tex2D(ObjectTextureSampler, tex);
         // テクスチャ材質モーフ
@@ -144,3 +120,5 @@ MAIN_TEC(MainTec0, "object", false, false)
 MAIN_TEC(MainTec1, "object", true, false)
 MAIN_TEC(MainTecBS0, "object_ss", false, true)
 MAIN_TEC(MainTecBS1, "object_ss", true, true)
+
+#endif
