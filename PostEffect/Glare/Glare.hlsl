@@ -8,8 +8,8 @@ static const float BloomThreshold2 = 1.2;
 static const int   BlurRadius = 3;
 static const float BlurStdDev = 2;
 
-static const float BrightMapViewportRatio[4] = {
-    1.0, 1.0, 0.5, 0.25
+static const float BrightMapViewportRatio[5] = {
+    1.0, 1.0, 0.5, 0.25, 0.125
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -36,6 +36,8 @@ DEFINE_BRIGHT_MAP(BrightMap2X, BrightSamp2X, BrightMapViewportRatio[2])
 DEFINE_BRIGHT_MAP(BrightMap2Y, BrightSamp2Y, BrightMapViewportRatio[2])
 DEFINE_BRIGHT_MAP(BrightMap3X, BrightSamp3X, BrightMapViewportRatio[3])
 DEFINE_BRIGHT_MAP(BrightMap3Y, BrightSamp3Y, BrightMapViewportRatio[3])
+DEFINE_BRIGHT_MAP(BrightMap4X, BrightSamp4X, BrightMapViewportRatio[4])
+DEFINE_BRIGHT_MAP(BrightMap4Y, BrightSamp4Y, BrightMapViewportRatio[4])
 
 //-------------------------------------------------------------------------------------------------
 
@@ -116,6 +118,7 @@ float4 SumPS(
     c += tex2D(BrightSamp1Y, coord).rgb;
     c += tex2D(BrightSamp2Y, coord).rgb;
     c += tex2D(BrightSamp3Y, coord).rgb;
+    c += tex2D(BrightSamp4Y, coord).rgb;
 #else
     float3 c = tex2D(BrightSamp0, coord).rgb;
 #endif
@@ -161,11 +164,12 @@ technique PostEffect <
 		"ClearSetDepth=ClearDepth;"                      \
 		"Clear=Color;"                                   \
 		"Clear=Depth;"                                   \
-	    "Pass=" y_pass ";"                               \
+	    "Pass=" y_pass ";"
 
         DEFINE_BLUR_SCRIPT("Blur1X", "Blur1Y", "BrightMap1X", "BrightMap1Y")
         DEFINE_BLUR_SCRIPT("Blur2X", "Blur2Y", "BrightMap2X", "BrightMap2Y")
         DEFINE_BLUR_SCRIPT("Blur3X", "Blur3Y", "BrightMap3X", "BrightMap3Y")
+        DEFINE_BLUR_SCRIPT("Blur4X", "Blur4Y", "BrightMap4X", "BrightMap4Y")
 
         "RenderColorTarget0=;"
         "RenderDepthStencilTarget=;"
@@ -197,6 +201,7 @@ technique PostEffect <
     }
 
     DEFINE_BLUR_PASS(Blur1X, Blur1Y, BrightSamp0,  BrightSamp1X, BrightMapViewportRatio[0], BrightMapViewportRatio[1])
-    DEFINE_BLUR_PASS(Blur2X, Blur2Y, BrightSamp1X, BrightSamp2X, BrightMapViewportRatio[1], BrightMapViewportRatio[2])
-    DEFINE_BLUR_PASS(Blur3X, Blur3Y, BrightSamp2X, BrightSamp3X, BrightMapViewportRatio[2], BrightMapViewportRatio[3])
+    DEFINE_BLUR_PASS(Blur2X, Blur2Y, BrightSamp1Y, BrightSamp2X, BrightMapViewportRatio[1], BrightMapViewportRatio[2])
+    DEFINE_BLUR_PASS(Blur3X, Blur3Y, BrightSamp2Y, BrightSamp3X, BrightMapViewportRatio[2], BrightMapViewportRatio[3])
+    DEFINE_BLUR_PASS(Blur4X, Blur4Y, BrightSamp3Y, BrightSamp4X, BrightMapViewportRatio[3], BrightMapViewportRatio[4])
 }
