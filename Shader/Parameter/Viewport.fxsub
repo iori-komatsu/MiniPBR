@@ -7,10 +7,13 @@
 //   https://docs.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-coordinates
 
 float2 ViewportSize : VIEWPORTPIXELSIZE;
-static float2 ViewportOffset = float2(0.5, 0.5) / ViewportSize;
 
-inline float2 ViewportCoordToTexelCoord(float2 coord) {
-    return coord + ViewportOffset;
+inline float2 ViewportOffset(float2 viewportRatio = float2(1.0, 1.0)) {
+    return float2(0.5, 0.5) / (ViewportSize * viewportRatio);
+}
+
+inline float2 ViewportCoordToTexelCoord(float2 coord, float2 viewportRatio = float2(1.0, 1.0)) {
+    return coord + ViewportOffset(viewportRatio);
 }
 
 #endif
