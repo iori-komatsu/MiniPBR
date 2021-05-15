@@ -8,13 +8,13 @@ static const float BloomThreshold2 = 1.2;
 static const int   BlurRadius = 3;
 static const float BlurStdDev = 2;
 
-static const float BrightMapViewportRatio[5] = {
+static const float BloomMapViewportRatio[5] = {
     1.0, 1.0, 0.5, 0.25, 0.125
 };
 
 //-------------------------------------------------------------------------------------------------
 
-#define DEFINE_BRIGHT_MAP(map_name, samp_name, ratio) \
+#define DEFINE_BLOOM_MAP(map_name, samp_name, ratio) \
     texture2D map_name : RENDERCOLORTARGET <   \
         float2 ViewportRatio = {ratio, ratio}; \
         int MipLevels = 1;                     \
@@ -25,19 +25,20 @@ static const float BrightMapViewportRatio[5] = {
         MinFilter = LINEAR;                    \
         MagFilter = LINEAR;                    \
         MipFilter = NONE;                      \
-        AddressU = CLAMP;                      \
-        AddressV = CLAMP;                      \
+        AddressU = BORDER;                     \
+        AddressV = BORDER;                     \
+        BorderColor = 0.0;                     \
     };
 
-DEFINE_BRIGHT_MAP(BrightMap0,  BrightSamp0,  BrightMapViewportRatio[0])
-DEFINE_BRIGHT_MAP(BrightMap1X, BrightSamp1X, BrightMapViewportRatio[1])
-DEFINE_BRIGHT_MAP(BrightMap1Y, BrightSamp1Y, BrightMapViewportRatio[1])
-DEFINE_BRIGHT_MAP(BrightMap2X, BrightSamp2X, BrightMapViewportRatio[2])
-DEFINE_BRIGHT_MAP(BrightMap2Y, BrightSamp2Y, BrightMapViewportRatio[2])
-DEFINE_BRIGHT_MAP(BrightMap3X, BrightSamp3X, BrightMapViewportRatio[3])
-DEFINE_BRIGHT_MAP(BrightMap3Y, BrightSamp3Y, BrightMapViewportRatio[3])
-DEFINE_BRIGHT_MAP(BrightMap4X, BrightSamp4X, BrightMapViewportRatio[4])
-DEFINE_BRIGHT_MAP(BrightMap4Y, BrightSamp4Y, BrightMapViewportRatio[4])
+DEFINE_BLOOM_MAP(BloomMap0,  BloomSamp0,  BloomMapViewportRatio[0])
+DEFINE_BLOOM_MAP(BloomMap1X, BloomSamp1X, BloomMapViewportRatio[1])
+DEFINE_BLOOM_MAP(BloomMap1Y, BloomSamp1Y, BloomMapViewportRatio[1])
+DEFINE_BLOOM_MAP(BloomMap2X, BloomSamp2X, BloomMapViewportRatio[2])
+DEFINE_BLOOM_MAP(BloomMap2Y, BloomSamp2Y, BloomMapViewportRatio[2])
+DEFINE_BLOOM_MAP(BloomMap3X, BloomSamp3X, BloomMapViewportRatio[3])
+DEFINE_BLOOM_MAP(BloomMap3Y, BloomSamp3Y, BloomMapViewportRatio[3])
+DEFINE_BLOOM_MAP(BloomMap4X, BloomSamp4X, BloomMapViewportRatio[4])
+DEFINE_BLOOM_MAP(BloomMap4Y, BloomSamp4Y, BloomMapViewportRatio[4])
 
 //-------------------------------------------------------------------------------------------------
 
@@ -115,12 +116,12 @@ float4 SumPS(
 ) : COLOR {
 #if 1
     float3 c = tex2D(ScnSamp, coord).rgb;
-    c += tex2D(BrightSamp1Y, coord).rgb;
-    c += tex2D(BrightSamp2Y, coord).rgb;
-    c += tex2D(BrightSamp3Y, coord).rgb;
-    c += tex2D(BrightSamp4Y, coord).rgb;
+    c += tex2D(BloomSamp1Y, coord).rgb;
+    c += tex2D(BloomSamp2Y, coord).rgb;
+    c += tex2D(BloomSamp3Y, coord).rgb;
+    c += tex2D(BloomSamp4Y, coord).rgb;
 #else
-    float3 c = tex2D(BrightSamp0, coord).rgb;
+    float3 c = tex2D(BloomSamp0, coord).rgb;
 #endif
     return float4(c, 1.0);
 }
@@ -141,7 +142,7 @@ technique PostEffect <
         "Clear=Depth;"
         "ScriptExternal=Color;"
 
-        "RenderColorTarget0=BrightMap0;"
+        "RenderColorTarget0=BloomMap0;"
 	    "RenderDepthStencilTarget=DepthBuffer;"
 		"ClearSetColor=ClearColor;"
 		"ClearSetDepth=ClearDepth;"
@@ -166,10 +167,10 @@ technique PostEffect <
 		"Clear=Depth;"                                   \
 	    "Pass=" y_pass ";"
 
-        DEFINE_BLUR_SCRIPT("Blur1X", "Blur1Y", "BrightMap1X", "BrightMap1Y")
-        DEFINE_BLUR_SCRIPT("Blur2X", "Blur2Y", "BrightMap2X", "BrightMap2Y")
-        DEFINE_BLUR_SCRIPT("Blur3X", "Blur3Y", "BrightMap3X", "BrightMap3Y")
-        DEFINE_BLUR_SCRIPT("Blur4X", "Blur4Y", "BrightMap4X", "BrightMap4Y")
+        DEFINE_BLUR_SCRIPT("Blur1X", "Blur1Y", "BloomMap1X", "BloomMap1Y")
+        DEFINE_BLUR_SCRIPT("Blur2X", "Blur2Y", "BloomMap2X", "BloomMap2Y")
+        DEFINE_BLUR_SCRIPT("Blur3X", "Blur3Y", "BloomMap3X", "BloomMap3Y")
+        DEFINE_BLUR_SCRIPT("Blur4X", "Blur4Y", "BloomMap4X", "BloomMap4Y")
 
         "RenderColorTarget0=;"
         "RenderDepthStencilTarget=;"
@@ -200,8 +201,8 @@ technique PostEffect <
         PixelShader  = compile ps_3_0 YBlurPS(x_samp, out_ratio);  \
     }
 
-    DEFINE_BLUR_PASS(Blur1X, Blur1Y, BrightSamp0,  BrightSamp1X, BrightMapViewportRatio[0], BrightMapViewportRatio[1])
-    DEFINE_BLUR_PASS(Blur2X, Blur2Y, BrightSamp1Y, BrightSamp2X, BrightMapViewportRatio[1], BrightMapViewportRatio[2])
-    DEFINE_BLUR_PASS(Blur3X, Blur3Y, BrightSamp2Y, BrightSamp3X, BrightMapViewportRatio[2], BrightMapViewportRatio[3])
-    DEFINE_BLUR_PASS(Blur4X, Blur4Y, BrightSamp3Y, BrightSamp4X, BrightMapViewportRatio[3], BrightMapViewportRatio[4])
+    DEFINE_BLUR_PASS(Blur1X, Blur1Y, BloomSamp0,  BloomSamp1X, BloomMapViewportRatio[0], BloomMapViewportRatio[1])
+    DEFINE_BLUR_PASS(Blur2X, Blur2Y, BloomSamp1Y, BloomSamp2X, BloomMapViewportRatio[1], BloomMapViewportRatio[2])
+    DEFINE_BLUR_PASS(Blur3X, Blur3Y, BloomSamp2Y, BloomSamp3X, BloomMapViewportRatio[2], BloomMapViewportRatio[3])
+    DEFINE_BLUR_PASS(Blur4X, Blur4Y, BloomSamp3Y, BloomSamp4X, BloomMapViewportRatio[3], BloomMapViewportRatio[4])
 }
