@@ -46,7 +46,7 @@ void VS(
     out float2 oCoord : TEXCOORD0
 ) {
     oPos = pos;
-    oCoord = PixelCoordToTexelCoord(coord.xy);
+    oCoord = ViewportCoordToTexelCoord(coord.xy);
 }
 
 //-------------------------------------------------------------------------------------------------

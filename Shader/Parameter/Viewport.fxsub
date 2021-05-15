@@ -9,8 +9,8 @@
 float2 ViewportSize : VIEWPORTPIXELSIZE;
 static float2 ViewportOffset = float2(0.5, 0.5) / ViewportSize;
 
-inline float2 PixelCoordToTexelCoord(float2 pixelCoord) {
-    return pixelCoord + ViewportOffset;
+inline float2 ViewportCoordToTexelCoord(float2 coord) {
+    return coord + ViewportOffset;
 }
 
 #endif

@@ -15,7 +15,7 @@ void MainVS(
     float2 offset = 1 - scale;
     float2 uv = (pos.xy + 1) / 2;
     oPos = float4(scale*uv + offset, pos.zw);
-    oTexCoord = PixelCoordToTexelCoord(texCoord);
+    oTexCoord = ViewportCoordToTexelCoord(texCoord);
 }
 
 float4 DrawShadowMap(sampler2D samp, float2 uv) {
