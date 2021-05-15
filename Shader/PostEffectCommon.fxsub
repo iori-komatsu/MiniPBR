@@ -1,0 +1,13 @@
+#ifndef SHADER_POST_EFFECT_COMMON_INCLUDED
+#define SHADER_POST_EFFECT_COMMON_INCLUDED
+
+float Script : STANDARDSGLOBAL <
+    string ScriptOutput = "color";
+    string ScriptClass = "scene";
+    string ScriptOrder = "postprocess";
+> = 0.8;
+
+#include <Shader/Common.fxsub>
+#include <Shader/ScnMap.fxsub>
+
+#endif

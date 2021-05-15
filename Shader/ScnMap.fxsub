@@ -1,0 +1,21 @@
+#ifndef SHADER_SCN_MAP_INCLUDED
+#define SHADER_SCN_MAP_INCLUDED
+
+texture DepthBuffer : RENDERDEPTHSTENCILTARGET<
+    float2 ViewportRatio = {1.0, 1.0};
+    string Format = "D24S8";
+>;
+texture2D ScnMap : RENDERCOLORTARGET<
+    float2 ViewportRatio = {1.0, 1.0};
+    string Format = "A16B16G16R16F";
+>;
+sampler2D ScnSamp = sampler_state {
+    texture   = <ScnMap>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = NONE;
+    AddressU  = CLAMP;
+    AddressV  = CLAMP;
+};
+
+#endif

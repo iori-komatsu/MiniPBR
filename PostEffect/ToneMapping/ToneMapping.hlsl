@@ -1,4 +1,4 @@
-#include <Shader/Common.fxsub>
+#include <Shader/PostEffectCommon.fxsub>
 #include <Shader/ColorSpace.fxsub>
 #include <Shader/Parameter/Viewport.fxsub>
 
@@ -11,31 +11,6 @@ float  Si   : CONTROLOBJECT < string name = "(self)"; string item = "Si";   >; /
 
 // 露光 (アクセサリの Si はUIで指定された値の10倍が取得されるので、0.1倍してもとに戻す)
 static float Exposure = Si * 0.1;
-
-float Script : STANDARDSGLOBAL <
-    string ScriptOutput = "color";
-    string ScriptClass = "scene";
-    string ScriptOrder = "postprocess";
-> = 0.8;
-
-//-------------------------------------------------------------------------------------------------
-
-texture DepthBuffer : RENDERDEPTHSTENCILTARGET<
-    float2 ViewportRatio = {1.0, 1.0};
-    string Format = "D24S8";
->;
-texture2D ScnMap : RENDERCOLORTARGET<
-    float2 ViewportRatio = {1.0, 1.0};
-    string Format = "A16B16G16R16F";
->;
-sampler2D ScnSamp = sampler_state {
-    texture   = <ScnMap>;
-    MinFilter = POINT;
-    MagFilter = POINT;
-    MipFilter = NONE;
-    AddressU  = CLAMP;
-    AddressV  = CLAMP;
-};
 
 //-------------------------------------------------------------------------------------------------
 
@@ -99,7 +74,7 @@ float4 PS(in float2 coord: TEXCOORD0) : COLOR {
     return float4(outColor, inColor.a);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+//-------------------------------------------------------------------------------------------------
 
 // レンダリングターゲットのクリア値
 float4 ClearColor = {1, 1, 1, 0};
@@ -125,5 +100,3 @@ technique PostEffect <
         PixelShader  = compile ps_3_0 PS();
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////
