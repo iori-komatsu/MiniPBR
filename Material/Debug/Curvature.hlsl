@@ -5,8 +5,8 @@ float2 Curvature(float3 worldPos, float3 normal) {
     float3 dPdy = ddy(worldPos);
     float3 dNdx = ddx(normal);
     float3 dNdy = ddy(normal);
-    float cx = length(dPdx + dNdx) / length(dPdx) - 1;
-    float cy = length(dPdy + dNdy) / length(dPdy) - 1;
+    float cx = length(dNdx) / length(dPdx);
+    float cy = length(dNdy) / length(dPdy);
     return float2(cx, cy);
 }
 
