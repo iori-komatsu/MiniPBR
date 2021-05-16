@@ -16,7 +16,7 @@ sampler2D PreIntegratedSkinLUTSamp = sampler_state {
 
 float3 SubsurfaceScattering(float dotNL, float3 worldPos, float3 normal) {
     float u = dotNL * 0.5 + 0.5;
-    float v = saturate(Curvature(worldPos, normal));
+    float v = 1.0 - saturate(Curvature(worldPos, normal));
     return tex2D(PreIntegratedSkinLUTSamp, float2(u, v)).rgb;
 }
 
@@ -41,18 +41,21 @@ float3 ShaderSurface(
     float dotNL = saturate(dot(normal, lightDir));
     float dotNV = saturate(dot(normal, viewDir));
     float dotNH = saturate(dot(normal, h));
-    float dotLH = saturate(dot(lightDir, h));
     float dotVH = saturate(dot(viewDir, h));
-    float dotLV = saturate(dot(lightDir, viewDir));
 
     const float specularRoughness = 0.35;
-    const float diffuseRoughness = 0.85;
+    const float diffuseRoughness = 0.9;
     const float f0 = 0.04;
 
     float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, specularRoughness, f0);
 
     float3 scatterCoeff = SubsurfaceScattering(dot(normal, lightDir), worldPos, normal);
-    float3 fDiffuse = LambertDiffuseBRDF(baseColor) * scatterCoeff;
+    float3 fDiffuse = OrenNayarDiffuseBRDF(
+        dot(normal, lightDir),
+        dot(normal, viewDir),
+        dot(lightDir, viewDir),
+        baseColor,
+        diffuseRoughness) * scatterCoeff;
 
     return fSpecular * lightIrradiance * lightVisibility
          + fDiffuse * lightIrradiance * lightVisibility
