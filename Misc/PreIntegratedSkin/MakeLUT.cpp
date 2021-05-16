@@ -62,7 +62,7 @@ glm::f64vec3 integrate_diffusion_profile(double dotNL, double curvature, int n_s
     double radius = 1.0 / curvature;
 
     for (int i = 0; i < n_samples; ++i) {
-        double x = glm::mix(-PI/2, PI/2, double(i) / (n_samples - 1));
+        double x = glm::mix(-PI, PI, double(i) / (n_samples - 1));
         double irradiance = max(0.0, cos(theta + x));
         double dist = abs(2 * radius * sin(x / 2));
         glm::f64vec3 dp = diffusion_profile(dist);
@@ -89,6 +89,7 @@ void make_lut(int w, int h, int n_samples) {
     vector<uint8_t> image(w * h * 3);
 
     for (int y = 0; y < h; ++y) {
+        cerr << "Calculate y=" << y << "\n";
         for (int x = 0; x < w; ++x) {
             auto v = calc(x, y, w, h, n_samples);
             uint8_t* pixel = &image[3*(y*w+x)];
