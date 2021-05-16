@@ -60,7 +60,7 @@ float3 SpecularD(float dotNH, float roughness) {
 }
 
 float3 SpecularG(float dotNL, float dotNV, float roughness) {
-    float k = sq(roughness + 1.0);
+    float k = sq(roughness + 1.0) / 8.0;
     float gl = dotNL / (dotNL * (1.0 - k) + k);
     float gv = dotNV / (dotNV * (1.0 - k) + k);
     return gl * gv;

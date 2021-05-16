@@ -2,6 +2,8 @@
 #include <Shader/ShadowMap/Sampling.fxsub>
 #include <Shader/Curvature.fxsub>
 
+const static float SubsurfaceScatteringFactor = 5.0;
+
 texture2D PreIntegratedSkinLUT <
     string ResourceName = "../Misc/PreIntegratedSkin/LUT_Linear.png";
 >;
@@ -16,7 +18,7 @@ sampler2D PreIntegratedSkinLUTSamp = sampler_state {
 
 float3 SubsurfaceScattering(float dotNL, float3 worldPos, float3 normal) {
     float u = dotNL * 0.5 + 0.5;
-    float v = 1.0 - saturate(Curvature(worldPos, normal));
+    float v = 1.0 - saturate(Curvature(worldPos, normal) * SubsurfaceScatteringFactor);
     return tex2D(PreIntegratedSkinLUTSamp, float2(u, v)).rgb;
 }
 
