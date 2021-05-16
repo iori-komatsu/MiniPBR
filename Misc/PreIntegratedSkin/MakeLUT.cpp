@@ -77,21 +77,23 @@ glm::f64vec3 calc(int x, int y, int w, int h, int n_samples) {
     y = h - y - 1; // 上下を反転
     double dotNL = glm::mix(-1.0, 1.0, double(x)/w);
     double curvature = glm::mix(0.0, 1.0, (y+0.5)/h);
-    glm::f64vec3 c = integrate_diffusion_profile(dotNL, curvature, n_samples);
-    return linear_to_srgb(c);
+    return integrate_diffusion_profile(dotNL, curvature, n_samples);
 }
 
 uint8_t round_to_uint8(double x) {
     return uint8_t(255.0 * x + 0.5);
 }
 
-void make_lut(int w, int h, int n_samples) {
+void make_lut(int w, int h, int n_samples, bool linear) {
     vector<uint8_t> image(w * h * 3);
 
     for (int y = 0; y < h; ++y) {
         cerr << "Calculate y=" << y << "\n";
         for (int x = 0; x < w; ++x) {
             auto v = calc(x, y, w, h, n_samples);
+            if (!linear) {
+                v = linear_to_srgb(v);
+            }
             uint8_t* pixel = &image[3*(y*w+x)];
             pixel[0] = round_to_uint8(v.x);
             pixel[1] = round_to_uint8(v.y);
@@ -99,7 +101,8 @@ void make_lut(int w, int h, int n_samples) {
         }
     }
 
-    int ok = stbi_write_png("LUT.png", w, h, 3, image.data(), 3 * w);
+    const char* filename = linear ? "LUT_Linear.png" : "LUT_sRGB.png";
+    int ok = stbi_write_png(filename, w, h, 3, image.data(), 3 * w);
     if (!ok) {
         cerr << "Failed to write LUT.png\n";
         exit(1);
@@ -110,6 +113,7 @@ int main(int argc, char** argv) {
     int w = 256;
     int h = 256;
     int n_samples = 4096;
+    bool linear = false;
     for(int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-w") == 0) {
             ++i;
@@ -135,8 +139,13 @@ int main(int argc, char** argv) {
             }
             n_samples = max(1, std::atoi(argv[i]));
         }
+        else if (strcmp(argv[i], "-linear") == 0) {
+            linear = true;
+        }
     }
 
-    make_lut(w, h, n_samples);
+    cerr << "w = " << w << ", h = " << h << ", n_samples = " << n_samples << ", linear = " << linear << "\n";
+
+    make_lut(w, h, n_samples, linear);
     return 0;
 }
