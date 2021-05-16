@@ -19,11 +19,15 @@ using namespace std;
 constexpr double PI = 3.14159265359;
 constexpr double TWO_PI = 2*PI;
 
+double linear_to_srgb(double x) {
+    return x < 0.0031308 ? x*12.92 : pow(x, 1.0/2.4) * 1.055 - 0.055;
+}
+
 glm::f64vec3 linear_to_srgb(glm::f64vec3 rgb) {
-    return glm::mix(
-        rgb * 12.92,
-        glm::pow(rgb, glm::f64vec3(1.0/2.4, 1.0/2.4, 1.0/2.4)) * 1.055 - 0.055,
-        glm::step(0.0031308, rgb)
+    return glm::f64vec3(
+        linear_to_srgb(rgb.x),
+        linear_to_srgb(rgb.y),
+        linear_to_srgb(rgb.z)
     );
 }
 
@@ -38,10 +42,10 @@ glm::f64vec3 diffusion_profile(double dist /* in millimeters */) {
 
     double g1 = gaussian(dist, 0.0064);
     double g2 = gaussian(dist, 0.0484);
-    double g3 = gaussian(dist, 0.187);
-    double g4 = gaussian(dist, 0.567);
-    double g5 = gaussian(dist, 1.99);
-    double g6 = gaussian(dist, 7.41);
+    double g3 = gaussian(dist, 0.187 );
+    double g4 = gaussian(dist, 0.567 );
+    double g5 = gaussian(dist, 1.99  );
+    double g6 = gaussian(dist, 7.41  );
 
     double r = 0.233*g1 + 0.100*g2 + 0.118*g3 + 0.113*g4 + 0.356*g5 + 0.078*g6;
     double g = 0.455*g1 + 0.336*g2 + 0.198*g3 + 0.007*g4 + 0.004*g5;
@@ -58,9 +62,11 @@ glm::f64vec3 integrate_diffusion_profile(double dotNL, double curvature, int n_s
     double radius = 1.0 / curvature;
 
     for (int i = 0; i < n_samples; ++i) {
-        double x = glm::mix(-PI, PI, double(i) / (n_samples - 1));
-        glm::f64vec3 dp = diffusion_profile(2 * radius * sin(x / 2));
-        ret += max(0.0, cos(theta + x)) * dp;
+        double x = glm::mix(-PI/2, PI/2, double(i) / (n_samples - 1));
+        double irradiance = max(0.0, cos(theta + x));
+        double dist = abs(2 * radius * sin(x / 2));
+        glm::f64vec3 dp = diffusion_profile(dist);
+        ret += irradiance * dp;
         z += dp;
     }
 
@@ -68,6 +74,7 @@ glm::f64vec3 integrate_diffusion_profile(double dotNL, double curvature, int n_s
 }
 
 glm::f64vec3 calc(int x, int y, int w, int h, int n_samples) {
+    y = h - y - 1; // 上下を反転
     double dotNL = glm::mix(-1.0, 1.0, double(x)/w);
     double curvature = glm::mix(0.0, 1.0, (y+0.5)/h);
     glm::f64vec3 c = integrate_diffusion_profile(dotNL, curvature, n_samples);
