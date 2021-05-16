@@ -9,6 +9,5 @@ float3 ShaderSurface(
     float3 lightIrradiance,
     uniform bool selfShadow
 ) {
-    const float k = 0.6; // –¾‚é‚­‚È‚è‚·‚¬‚é‚Ì‚Å‚¿‚å‚Á‚ÆŒõ—Ê‚ðŒ¸‚ç‚·
-    return k * lightIrradiance * baseColor;
+    return baseColor;
 }
