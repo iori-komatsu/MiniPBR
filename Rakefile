@@ -41,7 +41,7 @@ end
 
 #--------------------------------------------------------------------------------------------------
 
-hlsl_files = FileList["**/*.hlsl"]
+hlsl_files = FileList["**/*.hlsl"].exclude(%r[^Vendor/])
 
 hlsl_files.each do |hlsl_file|
   fx_file = hlsl_file.pathmap("%X.fx")
