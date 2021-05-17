@@ -53,10 +53,11 @@ float3 ShaderSurface(
     float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, specularRoughness, f0);
 
     float3 scatterCoeff = SubsurfaceScattering(dot(normal, lightDir), worldPos, normal);
-    float3 fDiffuse = OrenNayarDiffuseBRDF(
+    float3 fDiffuse = DiffuseBRDF(
         scatterCoeff, // N¥L ‚Ì‘ã‚í‚è‚É scatterCoeff ‚ðŽg‚¤
         dot(normal, viewDir),
         dot(lightDir, viewDir),
+        dot(lightDir, h),
         baseColor,
         diffuseRoughness) * scatterCoeff;
 
