@@ -53,7 +53,7 @@ float3 ShaderSurface(
 
     float3 scatterCoeff = SubsurfaceScattering(dot(normal, lightDir), worldPos, normal);
     float3 fDiffuse = OrenNayarDiffuseBRDF(
-        dot(normal, lightDir),
+        scatterCoeff, // N¥L ‚Ì‘ã‚í‚è‚É scatterCoeff ‚ðŽg‚¤
         dot(normal, viewDir),
         dot(lightDir, viewDir),
         baseColor,

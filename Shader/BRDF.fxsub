@@ -33,12 +33,12 @@ float3 HalfLambertDiffuseBRDF(float dotNL, float3 albedo) {
 }
 */
 
-float3 OrenNayarDiffuseBRDF(float dotNL, float dotNV, float dotLV, float3 albedo, float roughness) {
+float3 OrenNayarDiffuseBRDF(float3 dotNL, float dotNV, float dotLV, float3 albedo, float roughness) {
     float r2 = sq(roughness);
     float3 A = (1 - 0.5 * r2 / (r2 + 0.33) + 0.17 * albedo * r2 / (r2 + 0.13)) / PI;
     float B = (0.45 * r2 / (r2 + 0.09)) / PI;
-    float s = dotLV - dotNL * dotNV;
-    float t = s <= 0 ? 1 : max(dotNL, dotNV);
+    float3 s = dotLV - dotNL * dotNV;
+    float3 t = s <= 0 ? 1 : max(dotNL, dotNV);
     return albedo * (A + B*s/t);
 }
 
