@@ -2,7 +2,7 @@
 #define MATERIAL_BASE_INCLUDED
 
 #include <Shader/Common.fxsub>
-#include <Shader/BRDF.fxsub>
+#include <shader/Math.fxsub>
 #include <Shader/ColorSpace.fxsub>
 #include <Shader/Parameter/Geometry.fxsub>
 #include <Shader/Parameter/Light.fxsub>

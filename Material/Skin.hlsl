@@ -1,4 +1,5 @@
 #include <Material/Base.fxsub>
+#include <Shader/BRDF.fxsub>
 #include <Shader/ShadowMap/Sampling.fxsub>
 #include <Shader/Curvature.fxsub>
 
