@@ -62,12 +62,12 @@ float3 OrenNayarDiffuseBRDF2(float3 dotNL, float dotNV, float dotLV, float dotNH
 */
 
 float SchlickF90(float cosine, float f90) {
-    float c = 1.0 - cosine;
+    float c = 1.0 - max(0, cosine);
     return 1.0 + (f90 - 1.0) * (c*c*c*c*c);
 }
 
 float3 SchlickF90(float3 cosine, float f90) {
-    float3 c = 1.0 - cosine;
+    float3 c = 1.0 - max(0, cosine);
     return 1.0 + (f90 - 1.0) * (c*c*c*c*c);
 }
 
