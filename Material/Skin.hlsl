@@ -11,7 +11,7 @@ float _SubsurfaceScatteringScale : CONTROLOBJECT < string name="SkinController.p
 static const float SpecularRoughness = 1.0 - _SpecularSmoothness;
 static const float DiffuseRoughness  = 1.0 - _DiffuseSmoothness;
 static const float MinLightVisibility = _ReduceShadow;
-static const float SubsurfaceScatteringScale = lerp(1.0, 10.0, _SubsurfaceScatteringScale);
+static const float SubsurfaceScatteringScale = lerp(1.0, 20.0, _SubsurfaceScatteringScale);
 
 texture2D PreIntegratedSkinLUT <
     string ResourceName = "../Misc/PreIntegratedSkin/LUT_Linear.png";
