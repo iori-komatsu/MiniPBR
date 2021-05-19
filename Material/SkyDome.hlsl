@@ -1,4 +1,4 @@
-#include <Material/Base.fxsub>
+#include <Shader/Material/Base.fxsub>
 
 float3 ShaderSurface(
     float3 worldPos,

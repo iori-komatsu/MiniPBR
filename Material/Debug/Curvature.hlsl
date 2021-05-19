@@ -1,4 +1,4 @@
-#include <Material/Base.fxsub>
+#include <Shader/Material/Base.fxsub>
 #include <Shader/Curvature.fxsub>
 
 float _SubsurfaceScatteringScale : CONTROLOBJECT < string name="SkinController.pmx"; string item="”ç‰ºŽU—"; >;
