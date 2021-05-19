@@ -6,15 +6,16 @@
 #include <Shader/ShadowMap/Sampling.fxsub>
 #include <Shader/Curvature.fxsub>
 
-float _SpecularSmoothness        : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="”½ŽËŒõ‚ÌŠŠ‚ç‚©‚³"; >;
-float _DiffuseSmoothness         : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="ŠgŽUŒõ‚ÌŠŠ‚ç‚©‚³"; >;
-float _ReduceShadow              : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="‰e‚ð”–‚ß‚é"; >;
-float _SubsurfaceScatteringScale : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="”ç‰ºŽU—"; >;
+float _SpecularSmoothness            : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="”½ŽËŒõ‚ÌŠŠ‚ç‚©‚³"; >;
+float _DiffuseSmoothness             : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="ŠgŽUŒõ‚ÌŠŠ‚ç‚©‚³"; >;
+float _ReduceShadow                  : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="‰e‚ð”–‚ß‚é"; >;
+float _SubsurfaceScatteringScale     : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="”ç‰ºŽU—"; >;
+float _SubsurfaceScatteringScaleX100 : CONTROLOBJECT < string name=CONTROLLER_NAME; string item="”ç‰ºŽU—x100"; >;
 
 static const float SpecularRoughness = 1.0 - _SpecularSmoothness;
 static const float DiffuseRoughness  = 1.0 - _DiffuseSmoothness;
 static const float MinLightVisibility = _ReduceShadow;
-static const float SubsurfaceScatteringScale = lerp(1.0, 10.0, _SubsurfaceScatteringScale);
+static const float SubsurfaceScatteringScale = lerp(1.0, 10.0, _SubsurfaceScatteringScale) * lerp(1.0, 100.0, _SubsurfaceScatteringScaleX100);
 
 texture2D PreIntegratedSkinLUT <
     string ResourceName = "../Misc/PreIntegratedSkin/LUT_Linear.png";
