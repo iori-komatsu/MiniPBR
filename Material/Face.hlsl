@@ -1,2 +1,2 @@
-#define CONTROLLER_NAME "SkinController.pmx"
+#define CONTROLLER_NAME "FaceController.pmx"
 #include <Shader/Material/PreIntegratedSkin.fxsub>
