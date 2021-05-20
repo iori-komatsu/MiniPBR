@@ -34,26 +34,18 @@ float3 HalfLambertDiffuseBRDF(float dotNL, float3 albedo) {
 */
 
 float3 OrenNayarDiffuseBRDF(float3 dotNL, float dotNV, float dotLV, float3 albedo, float roughness) {
-    float r2 = sq(roughness);
+    float  r2 = pow2(roughness);
     float3 A = (1 - 0.5 * r2 / (r2 + 0.33) + 0.17 * albedo * r2 / (r2 + 0.13)) / PI;
-    float B = (0.45 * r2 / (r2 + 0.09)) / PI;
+    float  B = (0.45 * r2 / (r2 + 0.09)) / PI;
     float3 s = dotLV - dotNL * dotNV;
     float3 t = s <= 0 ? 1 : max(dotNL, dotNV);
     return albedo * (A + B*s/t);
 }
 
-inline float FifthPower(float x) {
-    return x * x * x * x * x;
-}
-
-inline float3 FifthPower(float3 x) {
-    return x * x * x * x * x;
-}
-
 /*
 float3 OrenNayarDiffuseBRDF2(float3 dotNL, float dotNV, float dotLV, float dotNH, float3 albedo, float f0, float roughness) {
     // Hammon の近似式
-    float3 fSmooth = (21.0/20.0) * (1.0 - f0) * (1.0 - FifthPower(1.0 - dotNL)) * (1.0 - FifthPower(1.0 - dotNV));
+    float3 fSmooth = (21.0/20.0) * (1.0 - f0) * (1.0 - pow5(1.0 - dotNL)) * (1.0 - pow5(1.0 - dotNV));
     float  kFacing = 0.5 + 0.5 * dotLV;
     float3 fRough  = kFacing * (0.9 - 0.4 * kFacing) * ((0.5 + dotNH) / dotNH);
     float  fMulti  = 0.3641 * roughness;
@@ -62,28 +54,28 @@ float3 OrenNayarDiffuseBRDF2(float3 dotNL, float dotNV, float dotLV, float dotNH
 */
 
 float SchlickF90(float cosine, float f90) {
-    return 1.0 + (f90 - 1.0) * FifthPower(1.0 - saturate(cosine));
+    return 1.0 + (f90 - 1.0) * pow5(1.0 - saturate(cosine));
 }
 
 float3 SchlickF90(float3 cosine, float f90) {
-    return 1.0 + (f90 - 1.0) * FifthPower(1.0 - saturate(cosine));
+    return 1.0 + (f90 - 1.0) * pow5(1.0 - saturate(cosine));
 }
 
 float3 DiffuseBRDF(float3 dotNL, float dotNV, float dotLV, float dotLH, float3 albedo, float roughness) {
     // Oren-Nayer と Burley Diffuse を組み合わせる
     float3 base = OrenNayarDiffuseBRDF(dotNL, dotNV, dotLV, albedo, roughness);
-    float f90 = 0.5 + 2.0 * sq(dotLH) * roughness;
+    float  f90 = 0.5 + 2.0 * pow2(dotLH) * roughness;
     return base * SchlickF90(dotNL, f90) * SchlickF90(dotNV, f90);
 }
 
 float3 SpecularD(float dotNH, float roughness) {
-    float a = sq(roughness);
-    return INV_PI * sq(a) / sq(sq(dotNH) * (sq(a) - 1.0) + 1.0);
+    float a = pow2(roughness);
+    return INV_PI * pow2(a) / pow2(pow2(dotNH) * (pow2(a) - 1.0) + 1.0);
 }
 
 float3 SpecularG(float dotNL, float dotNV, float roughness) {
     // BRDFの分母に dotNL・dotNV の項があり、SpecularG の分子にも dotNL・dotNV の項があるのでキャンセルしておく
-    float k = sq(roughness + 1.0) / 8.0;
+    float k = pow2(roughness + 1.0) / 8.0;
     float gl = 1 / (dotNL * (1.0 - k) + k);
     float gv = 1 / (dotNV * (1.0 - k) + k);
     return gl * gv;
@@ -91,7 +83,7 @@ float3 SpecularG(float dotNL, float dotNV, float roughness) {
 
 float3 SpecularF(float dotVH, float3 f0) {
     // Schlick の近似
-    return f0 + (1.0 - f0) * FifthPower(1.0 - saturate(dotVH));
+    return f0 + (1.0 - f0) * pow5(1.0 - saturate(dotVH));
 }
 
 // Cook-Torrance のスペキュラBRDF

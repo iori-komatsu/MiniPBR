@@ -62,7 +62,7 @@ float4 ExtractBrightAreaPS(in float2 coord : TEXCOORD0) : COLOR {
 }
 
 inline float Gaussian(float x, float variance) {
-    return exp(-sq(x) / (2 * variance));
+    return exp(-pow2(x) / (2 * variance));
 }
 
 float4 XBlurPS(
@@ -70,7 +70,7 @@ float4 XBlurPS(
     uniform in sampler2D samp,     // 入力テクスチャのサンプラー
     uniform in float viewportRatio // 入力テクスチャの ViewportRatio
 ) : COLOR {
-    const float variance = sq(BlurStdDev);
+    const float variance = pow2(BlurStdDev);
 
     float texelSize = 1.0 / (ViewportSize.x * viewportRatio);
 
@@ -93,7 +93,7 @@ float4 YBlurPS(
     uniform in sampler2D samp,     // 入力テクスチャのサンプラー
     uniform in float viewportRatio // 入力テクスチャの ViewportRatio
 ) : COLOR {
-    const float variance = sq(BlurStdDev);
+    const float variance = pow2(BlurStdDev);
 
     float texelSize = 1.0 / (ViewportSize.y * viewportRatio);
 
