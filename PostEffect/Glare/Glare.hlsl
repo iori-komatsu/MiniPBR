@@ -3,7 +3,10 @@
 #include <Shader/Parameter/Viewport.fxsub>
 #include <Shader/ColorSpace.fxsub>
 
-static const float BloomThreshold = 1.0;
+// パラメータ操作用オブジェクト
+float  XYZ : CONTROLOBJECT < string name = "(self)"; string item = "XYZ";   >;
+
+static const float BloomThreshold = exp2(-0.01 * XYZ.x);
 static const int   BlurRadius = 3;
 static const float BlurStdDev = 2;
 
