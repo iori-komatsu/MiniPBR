@@ -11,4 +11,12 @@ inline float pow2(float x) { return x * x; }
 inline float  pow5(float  x) { return x * x * x * x * x; }
 inline float3 pow5(float3 x) { return x * x * x * x * x; }
 
+inline float  Remap01To11(float  x) { return 2.0 * x - 1.0; }
+inline float2 Remap01To11(float2 x) { return 2.0 * x - 1.0; }
+inline float3 Remap01To11(float3 x) { return 2.0 * x - 1.0; }
+
+inline float  Remap11To01(float  x) { return 0.5 * x + 0.5; }
+inline float2 Remap11To01(float2 x) { return 0.5 * x + 0.5; }
+inline float3 Remap11To01(float3 x) { return 0.5 * x + 0.5; }
+
 #endif

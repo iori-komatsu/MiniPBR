@@ -19,16 +19,36 @@ bool     transp;   // 半透明フラグ
 #define  SKII1    1500
 #define  SKII2    8000
 
+#define MAX_ANISOTROPY 16
+
 // オブジェクトのテクスチャ
 texture ObjectTexture: MATERIALTEXTURE;
 sampler ObjectTextureSampler = sampler_state {
-    texture = <ObjectTexture>;
-    MINFILTER = LINEAR;
-    MAGFILTER = LINEAR;
-    MIPFILTER = LINEAR;
-    ADDRESSU  = WRAP;
-    ADDRESSV  = WRAP;
+    Texture = <ObjectTexture>;
+    MinFilter = ANISOTROPIC;
+    MagFilter = ANISOTROPIC;
+    MipFilter = ANISOTROPIC;
+    MaxAnisotropy = MAX_ANISOTROPY;
+    AddressU  = WRAP;
+    AddressV  = WRAP;
 };
+
+#ifdef USE_NORMAL_MAP
+
+texture2D NormalMap <
+    string ResourceName = NORMAL_MAP_PATH;
+>;
+sampler2D NormalSamp = sampler_state {
+    Texture = <NormalMap>;
+    MinFilter = ANISOTROPIC;
+    MagFilter = ANISOTROPIC;
+    MipFilter = ANISOTROPIC;
+    MaxAnisotropy = MAX_ANISOTROPY;
+    AddressU = WRAP;
+    AddressV = WRAP;
+};
+
+#endif
 
 //---------------------------------------------------------------------------------------------
 
@@ -84,6 +104,39 @@ float4 BaseColor(float2 tex, uniform bool useTexture) {
     return float4(sRGB2Linear(baseColor.rgb), baseColor.a);
 }
 
+#ifdef USE_NORMAL_MAP
+
+    float3 TangentNormalToWorldNormal(float3 tangentNormal, float3 worldNormal, float3 worldPos, float2 tex) {
+        float3 p1 = ddx(worldPos);
+        float3 p2 = ddy(worldPos);
+        float2 t1 = ddx(tex);
+        float2 t2 = ddy(tex);
+
+        float3 worldU = normalize(t2.y * p1 - t1.y * p2);
+        float3 worldV = normalize(t1.x * p2 - t2.x * p1);
+
+        float3 tangent  = normalize(worldU - dot(worldU, worldNormal) * worldNormal);
+        float3 binormal = normalize(worldV - dot(worldV, worldNormal) * worldNormal);
+
+        return normalize(
+            tangentNormal.x * tangent + tangentNormal.y * binormal + tangentNormal.z * worldNormal
+        );
+    }
+
+    float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal) {
+        float2 normalTex = tex * NormalMapRepeat;
+        float3 tangentNormal = Remap01To11(tex2D(NormalSamp, normalTex).rgb);
+        return TangentNormalToWorldNormal(tangentNormal, worldNormal, worldPos, normalTex);
+    }
+
+#else
+
+    inline float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal) {
+        return worldNormal;
+    }
+
+#endif
+
 // ピクセルシェーダ
 float4 MainPS(
     float3 worldPos : TEXCOORD0,
@@ -97,7 +150,7 @@ float4 MainPS(
     float3 outColor = ShaderSurface(
         worldPos,
         baseColor.rgb,
-        normalize(normal),
+        GetNormal(worldPos, tex, normalize(normal)),
         normalize(viewDir),
         -LightDir,
         LightIrradiance,

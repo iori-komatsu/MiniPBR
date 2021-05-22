@@ -18,7 +18,7 @@ static const float MinLightVisibility = _ReduceShadow;
 static const float SubsurfaceScatteringScale = lerp(1.0, 10.0, _SubsurfaceScatteringScale) * lerp(1.0, 100.0, _SubsurfaceScatteringScaleX100);
 
 texture2D PreIntegratedSkinLUT <
-    string ResourceName = "../Misc/PreIntegratedSkin/LUT_Linear.png";
+    string ResourceName = PRE_INTEGRATED_SKIN_LUT_PATH;
 >;
 sampler2D PreIntegratedSkinLUTSamp = sampler_state {
     Texture = <PreIntegratedSkinLUT>;
