@@ -3,8 +3,7 @@
 #include <Shader/Parameter/Viewport.fxsub>
 #include <Shader/ColorSpace.fxsub>
 
-static const float BloomThreshold1 = 1.0;
-static const float BloomThreshold2 = 1.2;
+static const float BloomThreshold = 1.0;
 static const int   BlurRadius = 3;
 static const float BlurStdDev = 2;
 
@@ -55,9 +54,9 @@ void VS(
 
 float4 ExtractBrightAreaPS(in float2 coord : TEXCOORD0) : COLOR {
     float4 inColor = tex2D(ScnSamp, coord);
-    float luminance = Luminance(inColor.rgb);
-    float alpha = saturate((luminance - BloomThreshold1) / (BloomThreshold2 - BloomThreshold1));
-    float3 outColor = smoothstep(0, inColor.rgb, alpha);
+    float inL = Luminance(inColor.rgb);
+    float outL = max(0, inL - BloomThreshold);
+    float3 outColor = (outL / inL) * inColor.rgb;
     return float4(outColor, inColor.a);
 }
 
