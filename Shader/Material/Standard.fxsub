@@ -1,0 +1,38 @@
+#ifndef SHADER_MATERIAL_STANDARD_INCLUDED
+#define SHADER_MATERIAL_STANDARD_INCLUDED
+
+#include <Shader/Material/Base.fxsub>
+#include <Shader/BRDF/Lambert.fxsub>
+#include <Shader/BRDF/Specular.fxsub>
+#include <Shader/ShadowMap/Sampling.fxsub>
+
+float3 ShaderSurface(
+    float3 worldPos,
+    float3 baseColor,
+    float3 normal,
+    float3 viewDir,
+    float3 lightDir,
+    float3 lightIrradiance,
+    uniform bool selfShadow
+) {
+    float lightVisibility;
+    if (selfShadow) {
+        lightVisibility = lerp(ReduceShadow, 1.0, CastShadow(worldPos, dot(normal, lightDir)));
+    } else {
+        lightVisibility = 1;
+    }
+
+    float3 h = normalize(viewDir + lightDir);
+    float dotNL = dot(normal, lightDir);
+    float dotNV = saturate(dot(normal, viewDir)); // NÅEV < 0 ÇÕåvéZåÎç∑Ç≈ÇµÇ©Ç†ÇËÇ¶Ç»Ç¢ÇÃÇ≈ saturate Ç∑ÇÈ
+    float dotNH = dot(normal, h);
+    float dotVH = dot(viewDir, h);
+
+    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, Roughness, F0);
+    float3 fDiffuse = LambertBRDF(baseColor);
+
+    return (fSpecular + fDiffuse) * saturate(dotNL) * lightIrradiance * lightVisibility
+         + AmbientIrradiance * baseColor;
+}
+
+#endif
