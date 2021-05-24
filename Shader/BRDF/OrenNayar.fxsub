@@ -1,0 +1,51 @@
+#ifndef SHADER_BRDF_OREN_NAYAR_INCLUDED
+#define SHADER_BRDF_OREN_NAYAR_INCLUDED
+
+// éQçlï∂å£:
+//
+// * Brent Burley; Walt Disney Animation Studios.
+//   "Physically Based Shading at Disney".
+//   SIGGRAPH 2012 Course: Practical Physically Based Shading in Film and Game Production.
+//   https://www.disneyanimation.com/publications/physically-based-shading-at-disney/
+//
+// * Yasuhiro Fujii. "A tiny improvement of Oren-Nayar reflectance model".
+//   https://mimosa-pudica.net/improved-oren-nayar.html
+
+#include <Shader/Math.fxsub>
+
+float3 OrenNayarBRDF(float3 dotNL, float dotNV, float dotLV, float3 albedo, float roughness) {
+    float  r2 = pow2(roughness);
+    float3 A = (1 - 0.5 * r2 / (r2 + 0.33) + 0.17 * albedo * r2 / (r2 + 0.13)) / PI;
+    float  B = (0.45 * r2 / (r2 + 0.09)) / PI;
+    float3 s = dotLV - dotNL * dotNV;
+    float3 t = s <= 0 ? 1 : max(dotNL, dotNV);
+    return albedo * (A + B*s/t);
+}
+
+/*
+float3 OrenNayarBRDF2(float3 dotNL, float dotNV, float dotLV, float dotNH, float3 albedo, float f0, float roughness) {
+    // Hammon ÇÃãﬂéóéÆ
+    float3 fSmooth = (21.0/20.0) * (1.0 - f0) * (1.0 - pow5(1.0 - dotNL)) * (1.0 - pow5(1.0 - dotNV));
+    float  kFacing = 0.5 + 0.5 * dotLV;
+    float3 fRough  = kFacing * (0.9 - 0.4 * kFacing) * ((0.5 + dotNH) / dotNH);
+    float  fMulti  = 0.3641 * roughness;
+    return step(0, dotNL) * step(0, dotNV) * (albedo * INV_PI) * (lerp(fSmooth, fRough, roughness) + albedo * fMulti);
+}
+*/
+
+float SchlickF90(float cosine, float f90) {
+    return 1.0 + (f90 - 1.0) * pow5(1.0 - saturate(cosine));
+}
+
+float3 SchlickF90(float3 cosine, float f90) {
+    return 1.0 + (f90 - 1.0) * pow5(1.0 - saturate(cosine));
+}
+
+float3 OrenNayarBurleyBRDF(float3 dotNL, float dotNV, float dotLV, float dotLH, float3 albedo, float roughness) {
+    // Oren-Nayar Ç∆ Burley Diffuse ÇëgÇ›çáÇÌÇπÇÈ
+    float3 base = OrenNayarBRDF(dotNL, dotNV, dotLV, albedo, roughness);
+    float  f90 = 0.5 + 2.0 * pow2(dotLH) * roughness;
+    return base * SchlickF90(dotNL, f90) * SchlickF90(dotNV, f90);
+}
+
+#endif

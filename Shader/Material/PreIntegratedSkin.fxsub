@@ -2,7 +2,8 @@
 #define SHADER_MATERIAL_PREINTEGRATED_SKIN_INCLUDED
 
 #include <Shader/Material/Base.fxsub>
-#include <Shader/BRDF.fxsub>
+#include <Shader/BRDF/Specular.fxsub>
+#include <Shader/BRDF/OrenNayar.fxsub>
 #include <Shader/ShadowMap/Sampling.fxsub>
 #include <Shader/Curvature.fxsub>
 
@@ -64,7 +65,7 @@ float3 ShaderSurface(
     float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, SpecularRoughness, f0) * saturate(dotNL);
 
     float3 scatterCoeff = SubsurfaceScattering(dotNL, worldPos, normal);
-    float3 fDiffuse = DiffuseBRDF(
+    float3 fDiffuse = OrenNayarBurleyBRDF(
         scatterCoeff, // N¥L ‚Ì‘ã‚í‚è‚É scatterCoeff ‚ðŽg‚¤
         dotNV, dotLV, dotLH,
         baseColor,

@@ -1,0 +1,13 @@
+#ifndef SHADER_BRDF_BLINN_PHONG_INCLUDED
+#define SHADER_BRDF_BLINN_PHONG_INCLUDED
+
+#include <Shader/Math.fxsub>
+
+// Blinn-Phong specular
+float3 BlinnPhongSpecular(float dotNH, float3 reflectance, float power) {
+    float invZ = (power + 2.0) * (power + 4.0)
+               / (8.0 * PI * (exp2(-0.5 * power) + power));
+    return invZ * reflectance * pow(saturate(dotNH), power);
+}
+
+#endif

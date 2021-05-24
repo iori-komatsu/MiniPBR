@@ -1,0 +1,47 @@
+#ifndef SHADER_BRDF_SPECULAR_INCLUDED
+#define SHADER_BRDF_SPECULAR_INCLUDED
+
+// 参考文献
+//
+// * Brian Karis; Epic Games.
+//   "Real Shading in Unreal Engine 4".
+//   SIGGRAPH 2013 Course: Physically Based Shading in Theory and Practice.
+//   https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
+
+#include <Shader/Math.fxsub>
+
+float3 SpecularD(float dotNH, float roughness) {
+    float a = pow2(roughness);
+    return INV_PI * pow2(a) / pow2(pow2(dotNH) * (pow2(a) - 1.0) + 1.0);
+}
+
+float3 SpecularG(float dotNL, float dotNV, float roughness) {
+    // BRDFの分母に dotNL・dotNV の項があり、SpecularG の分子にも dotNL・dotNV の項があるのでキャンセルしておく
+    float k = pow2(roughness + 1.0) / 8.0;
+    float gl = 1 / (dotNL * (1.0 - k) + k);
+    float gv = 1 / (dotNV * (1.0 - k) + k);
+    return gl * gv;
+}
+
+float3 SpecularF(float dotVH, float3 f0) {
+    // Schlick の近似式
+    return f0 + (1.0 - f0) * pow5(1.0 - saturate(dotVH));
+}
+
+// Cook-Torrance のスペキュラBRDF
+// dotNL > 0, dotNV > 0, dotNH > 0 を仮定する。
+float3 SpecularBRDF(
+    float dotNL,
+    float dotNV,
+    float dotNH,
+    float dotVH,
+    float roughness,
+    float3 f0
+) {
+    return 0.25
+         * SpecularD(dotNH, roughness)
+         * SpecularF(dotVH, f0)
+         * SpecularG(dotNL, dotNV, roughness);
+}
+
+#endif

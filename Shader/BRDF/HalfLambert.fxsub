@@ -1,0 +1,14 @@
+#ifndef SHADER_BRDF_HALF_LAMBERT_INCLUDED
+#define SHADER_BRDF_HALF_LAMBERT_INCLUDED
+
+#include <Shader/Math.fxsub>
+
+// Half-Lambert ‚ğg‚Á‚½ŠgUBRDF
+// ‚½‚¾‚µ dotNL ‚ğŠ|‚¯‚Ä•Ô‚·B
+float3 HalfLambertBRDF(float dotNL, float3 albedo) {
+    const float invZ = 3.0 / (4.0 * PI);
+    float c = dotNL * 0.5 + 0.5;
+    return invZ * c * c * albedo;
+}
+
+#endif

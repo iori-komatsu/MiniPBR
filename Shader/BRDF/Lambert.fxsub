@@ -1,0 +1,10 @@
+#ifndef SHADER_BRDF_LAMBERT_INCLUDED
+#define SHADER_BRDF_LAMBERT_INCLUDED
+
+#include <Shader/Math.fxsub>
+
+inline float3 LambertBRDF(float3 albedo) {
+    return INV_PI * albedo;
+}
+
+#endif
