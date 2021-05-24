@@ -8,10 +8,12 @@ shared texture2D ShadowMap1 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap2 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap3 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap4 : OFFSCREENRENDERTARGET;
+#if N_SHADOW_MAPS > 4
 shared texture2D ShadowMap5 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap6 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap7 : OFFSCREENRENDERTARGET;
 shared texture2D ShadowMap8 : OFFSCREENRENDERTARGET;
+#endif
 sampler2D Shadow1Samp = sampler_state {
     texture   = <ShadowMap1>;
     MinFilter = POINT;
@@ -44,6 +46,7 @@ sampler2D Shadow4Samp = sampler_state {
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
+#if N_SHADOW_MAPS > 4
 sampler2D Shadow5Samp = sampler_state {
     texture   = <ShadowMap5>;
     MinFilter = POINT;
@@ -76,6 +79,7 @@ sampler2D Shadow8Samp = sampler_state {
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
+#endif
 
 float ShadowMapBias(float2 uv, float tanNL, float3 projScaling, float eps, float maxBias) {
     float2 gridCenter = round(uv - ShadowMapOffset) + ShadowMapOffset;
@@ -126,25 +130,31 @@ float CastShadow(float3 worldPos, float dotNL) {
     float4 clipPos2 = mul(lightViewPos, LightProjectionMatrix[1]);
     float4 clipPos3 = mul(lightViewPos, LightProjectionMatrix[2]);
     float4 clipPos4 = mul(lightViewPos, LightProjectionMatrix[3]);
+#if N_SHADOW_MAPS > 4
     float4 clipPos5 = mul(lightViewPos, LightProjectionMatrix[4]);
     float4 clipPos6 = mul(lightViewPos, LightProjectionMatrix[5]);
     float4 clipPos7 = mul(lightViewPos, LightProjectionMatrix[6]);
     float4 clipPos8 = mul(lightViewPos, LightProjectionMatrix[7]);
+#endif
 
     float2 uv1 = (clipPos1.xy / clipPos1.w) * float2(1, -1) * 0.5 + 0.5;
     float2 uv2 = (clipPos2.xy / clipPos2.w) * float2(1, -1) * 0.5 + 0.5;
     float2 uv3 = (clipPos3.xy / clipPos3.w) * float2(1, -1) * 0.5 + 0.5;
     float2 uv4 = (clipPos4.xy / clipPos4.w) * float2(1, -1) * 0.5 + 0.5;
+#if N_SHADOW_MAPS > 4
     float2 uv5 = (clipPos5.xy / clipPos5.w) * float2(1, -1) * 0.5 + 0.5;
     float2 uv6 = (clipPos6.xy / clipPos6.w) * float2(1, -1) * 0.5 + 0.5;
     float2 uv7 = (clipPos7.xy / clipPos7.w) * float2(1, -1) * 0.5 + 0.5;
     float2 uv8 = (clipPos8.xy / clipPos8.w) * float2(1, -1) * 0.5 + 0.5;
+#endif
 
     int layer = 0;
+#if N_SHADOW_MAPS > 4
     if (all(saturate(uv8) == uv8)) { layer = 8; }
     if (all(saturate(uv7) == uv7)) { layer = 7; }
     if (all(saturate(uv6) == uv6)) { layer = 6; }
     if (all(saturate(uv5) == uv5)) { layer = 5; }
+#endif
     if (all(saturate(uv4) == uv4)) { layer = 4; }
     if (all(saturate(uv3) == uv3)) { layer = 3; }
     if (all(saturate(uv2) == uv2)) { layer = 2; }
@@ -153,22 +163,25 @@ float CastShadow(float3 worldPos, float dotNL) {
     if (layer == 0) { return 1.0; }
 
     [branch]
-    if (layer == 1) {
-        return SampleShadow(Shadow1Samp, uv1, layer, objectDepth, dotNL);
-    } else if (layer == 2) {
-        return SampleShadow(Shadow2Samp, uv2, layer, objectDepth, dotNL);
-    } else if (layer == 3) {
-        return SampleShadow(Shadow3Samp, uv3, layer, objectDepth, dotNL);
-    } else if (layer == 4) {
-        return SampleShadow(Shadow4Samp, uv4, layer, objectDepth, dotNL);
-    } else if (layer == 5) {
-        return SampleShadow(Shadow5Samp, uv5, layer, objectDepth, dotNL);
-    } else if (layer == 6) {
-        return SampleShadow(Shadow6Samp, uv6, layer, objectDepth, dotNL);
+#if N_SHADOW_MAPS > 4
+    if (layer == 8) {
+        return SampleShadow(Shadow8Samp, uv8, layer, objectDepth, dotNL);
     } else if (layer == 7) {
         return SampleShadow(Shadow7Samp, uv7, layer, objectDepth, dotNL);
+    } else if (layer == 6) {
+        return SampleShadow(Shadow6Samp, uv6, layer, objectDepth, dotNL);
+    } else if (layer == 5) {
+        return SampleShadow(Shadow5Samp, uv5, layer, objectDepth, dotNL);
+    } else
+#endif    
+    if (layer == 4) {
+        return SampleShadow(Shadow4Samp, uv4, layer, objectDepth, dotNL);
+    } else if (layer == 3) {
+        return SampleShadow(Shadow3Samp, uv3, layer, objectDepth, dotNL);
+    } else if (layer == 2) {
+        return SampleShadow(Shadow2Samp, uv2, layer, objectDepth, dotNL);
     } else {
-        return SampleShadow(Shadow8Samp, uv8, layer, objectDepth, dotNL);
+        return SampleShadow(Shadow1Samp, uv1, layer, objectDepth, dotNL);
     }
 }
 

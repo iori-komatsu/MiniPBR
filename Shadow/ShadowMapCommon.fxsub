@@ -1,3 +1,9 @@
+#define EMPTY_TEC(name, mmdpass) technique name<string MMDPass = mmdpass;> {}
+
+#include <Shader/ShadowMap/Constants.fxsub>
+
+#if SHADOW_MAP_LAYER <= N_SHADOW_MAPS
+
 #include <Shader/Common.fxsub>
 #include <Shader/ShadowMap/Common.fxsub>
 
@@ -30,7 +36,11 @@ technique DepthTec1<string MMDPass = "object_ss";> {
     }
 }
 
-#define EMPTY_TEC(name, mmdpass) technique name<string MMDPass = mmdpass;> {}
+#else
+
+EMPTY_TEC(DepthTec1, "object_ss")
+
+#endif
 
 EMPTY_TEC(DepthTec0, "object")
 EMPTY_TEC(EdgeTec, "edge")

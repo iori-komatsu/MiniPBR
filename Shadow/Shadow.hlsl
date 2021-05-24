@@ -50,6 +50,7 @@ shared texture2D ShadowMap4 : OFFSCREENRENDERTARGET <
         "self = hide;"
         "* = ShadowMap4.fx";
 >;
+#if N_SHADOW_MAPS > 4
 shared texture2D ShadowMap5 : OFFSCREENRENDERTARGET <
     string Description = "MiniPBR ShadowMap5";
     string Format = "R32F";
@@ -98,6 +99,7 @@ shared texture2D ShadowMap8 : OFFSCREENRENDERTARGET <
         "self = hide;"
         "* = ShadowMap8.fx";
 >;
+#endif
 sampler2D Shadow1Samp = sampler_state {
     texture   = <ShadowMap1>;
     MinFilter = POINT;
@@ -130,6 +132,7 @@ sampler2D Shadow4Samp = sampler_state {
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
+#if N_SHADOW_MAPS > 4
 sampler2D Shadow5Samp = sampler_state {
     texture   = <ShadowMap5>;
     MinFilter = POINT;
@@ -162,6 +165,7 @@ sampler2D Shadow8Samp = sampler_state {
     AddressU  = CLAMP;
     AddressV  = CLAMP;
 };
+#endif
 
 //-------------------------------------------------------------------------------------------------
 
