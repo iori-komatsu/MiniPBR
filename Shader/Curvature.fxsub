@@ -3,14 +3,10 @@
 
 // 曲率を返す。単位は [/mm]
 float Curvature(float3 worldPos, float3 normal) {
-    float3 dPdx = ddx(worldPos);
-    float3 dPdy = ddy(worldPos);
-    float3 dNdx = ddx(normal);
-    float3 dNdy = ddy(normal);
-    float cx = length(dNdx) / length(dPdx);
-    float cy = length(dNdy) / length(dPdy);
-    // 1/80 という係数は長さの尺度をMMD単位からミリメートルに直すために付けている。
-    return (1.0/80.0) * (cx + cy);
+    // Penner の方法
+    float c = length(fwidth(normal)) / length(fwidth(worldPos));
+    // 1/80 という係数は長さの尺度をMMD単位からミリメートルに直すために付けている
+    return (1.0/80.0) * c;
 }
 
 #endif
