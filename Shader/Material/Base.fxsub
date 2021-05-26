@@ -174,4 +174,8 @@ MAIN_TEC(MainTec1, "object", true, false)
 MAIN_TEC(MainTecBS0, "object_ss", false, true)
 MAIN_TEC(MainTecBS1, "object_ss", true, true)
 
+#define EMPTY_TEC(name, mmdpass) technique name<string MMDPass = mmdpass;> {}
+
+EMPTY_TEC(ShadowTec, "shadow")
+
 #endif
