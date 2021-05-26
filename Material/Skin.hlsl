@@ -4,6 +4,6 @@
 
 #define USE_NORMAL_MAP
 #define NORMAL_MAP_PATH "Texture/NM-Skin01.png"
-static const float NormalMapRepeat = 5;
+static const float NormalMapRepeat = 7;
 
 #include <Shader/Material/PreIntegratedSkin.fxsub>
