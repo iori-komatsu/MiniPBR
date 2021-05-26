@@ -8,6 +8,9 @@ const float INV_TAU = 0.15915494309189535;
 
 inline float pow2(float x) { return x * x; }
 
+inline float  pow3(float  x) { return x * x * x; }
+inline float3 pow3(float3 x) { return x * x * x; }
+
 inline float  pow5(float  x) { return x * x * x * x * x; }
 inline float3 pow5(float3 x) { return x * x * x * x * x; }
 
