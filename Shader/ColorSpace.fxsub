@@ -9,6 +9,11 @@ float3 Linear2sRGB(float3 rgb) {
     return rgb < 0.0031308 ? rgb*12.92 : pow(rgb, 1.0/2.4) * 1.055 - 0.055;
 }
 
+float3 HSV2RGB(float3 hsv) {
+	float3 rgb = smoothstep(2.0, 1.0, abs(fmod(hsv.x*6.0 + float3(0, 4, 2), 6.0) - 3.0));
+	return hsv.z * (1.0 - hsv.y * rgb);
+}
+
 float Luminance(float3 rgb) {
     const float3 k = float3(0.2126, 0.7152, 0.0722);
     return dot(k, rgb);

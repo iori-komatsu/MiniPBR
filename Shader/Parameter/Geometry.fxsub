@@ -2,6 +2,7 @@
 #define SHADER_PARAMETER_GEOMETRY_INCLUDED
 
 float4x4 WorldViewProjMatrix : WORLDVIEWPROJECTION;
+float4x4 WorldViewMatrix     : WORLDVIEW;
 float4x4 WorldMatrix         : WORLD;
 float4x4 ViewMatrix          : VIEW;
 float4x4 ProjectionMatrix    : PROJECTION;
