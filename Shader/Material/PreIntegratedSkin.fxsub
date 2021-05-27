@@ -31,7 +31,7 @@ sampler2D PreIntegratedSkinLUTSamp = sampler_state {
 };
 
 float3 SubsurfaceScattering(float dotNL, float3 worldPos, float3 normal) {
-    float u = dotNL * 0.5 + 0.5;
+    float u = Remap11To01(dotNL);
     float v = 1.0 - saturate(Curvature(worldPos, normal) * SubsurfaceScatteringScale);
     return tex2D(PreIntegratedSkinLUTSamp, float2(u, v)).rgb;
 }
@@ -65,6 +65,8 @@ float3 ShaderSurface(
     float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, SpecularRoughness, f0) * saturate(dotNL);
 
     float3 scatterCoeff = SubsurfaceScattering(dotNL, worldPos, normal);
+    // scatterCoeff ‚ğ‚»‚Ì‚Ü‚Üg‚¤‚Æ‹È—¦‚ª‚‚¢‚Æ‚«‚É”§‚ªÂ‚Á‚Û‚­‚È‚Á‚Ä‚µ‚Ü‚¤‚Ì‚Å‰‹}ˆ’u‚Æ‚µ‚Ä dotNL ‚Æ max ‚ğæ‚Á‚Ä‚¨‚­
+    scatterCoeff = max(scatterCoeff, dotNL);
     float3 fDiffuse = OrenNayarBurleyBRDF(
         scatterCoeff, // N¥L ‚Ì‘ã‚í‚è‚É scatterCoeff ‚ğg‚¤
         dotNV, dotLV, dotLH,
