@@ -1,5 +1,5 @@
 static const float ReduceShadow = 0.1;
-static const float Roughness = 0.4;
+static const float Roughness = 0.3;
 static const float F0 = 0.04;
 
 #define USE_NORMAL_MAP
