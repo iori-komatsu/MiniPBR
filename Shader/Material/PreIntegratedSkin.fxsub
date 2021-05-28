@@ -61,7 +61,7 @@ float3 ShaderSurface(
     float dotLH = dot(lightDir, h);
     float dotLV = dot(lightDir, viewDir);
 
-    const float f0 = 0.04;
+    const float f0 = 0.028; // "リアルタイムレンダリング 第4版" 283ページの表より
     float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, SpecularRoughness, f0) * saturate(dotNL);
 
     float3 scatterCoeff = SubsurfaceScattering(dotNL, worldPos, normal);

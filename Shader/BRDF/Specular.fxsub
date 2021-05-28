@@ -7,6 +7,7 @@
 //   "Real Shading in Unreal Engine 4".
 //   SIGGRAPH 2013 Course: Physically Based Shading in Theory and Practice.
 //   https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
+//
 // * Romain Guy; Mathias Agopian.
 //   "Physically Based Rendering in Filament".
 //   https://google.github.io/filament/Filament.md.html
@@ -33,7 +34,7 @@ float3 SpecularF(float dotVH, float3 f0) {
 }
 
 // Cook-Torrance のスペキュラBRDF
-// dotNL > 0, dotNV > 0, dotNH > 0 を仮定する。
+// dotNL > 0, dotNV > 0, dotNH > 0 を仮定する
 float3 SpecularBRDF(
     float dotNL,
     float dotNV,
