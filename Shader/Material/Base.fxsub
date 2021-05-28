@@ -125,7 +125,7 @@ float4 BaseColor(float2 tex, uniform bool useTexture) {
 
     float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal) {
         float2 normalTex = tex * NormalMapRepeat;
-        float3 tangentNormal = Remap01To11(tex2D(NormalSamp, normalTex).rgb);
+        float3 tangentNormal = normalize(Remap01To11(tex2D(NormalSamp, normalTex).rgb));
         return TangentNormalToWorldNormal(tangentNormal, worldNormal, worldPos, normalTex);
     }
 
