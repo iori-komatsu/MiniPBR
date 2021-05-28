@@ -40,13 +40,19 @@ float3 SpecularBRDF(
     float dotNV,
     float dotNH,
     float dotVH,
-    float perceptualRoughness,
+    float roughness,
     float3 f0
 ) {
-    float roughness = pow2(perceptualRoughness);
     return SpecularD(dotNH, roughness)
          * SpecularV(dotNL, dotNV, roughness)
          * SpecularF(dotVH, f0);
+}
+
+float GetToksvigRoughness(float roughness, float normalLength) {
+    roughness = max(roughness, 0.01); // roughness Ç™ 0 ÇæÇ∆åvéZÇ™ã∂Ç§ÇÃÇ≈
+    float sp = 2.0 / pow2(roughness) - 2.0; // roughness Å® specular power
+    float fixedSp = (normalLength * sp) / lerp(sp, 1.0, normalLength);
+    return sqrt(2.0 / (fixedSp + 2.0)); // specular power Å® roughness
 }
 
 #endif

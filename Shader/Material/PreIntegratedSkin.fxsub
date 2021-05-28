@@ -43,6 +43,7 @@ float3 ShaderSurface(
     float3 viewDir,
     float3 lightDir,
     float3 lightIrradiance,
+    float  normalLength,
     uniform bool selfShadow
 ) {
     float lightVisibility;
@@ -62,7 +63,8 @@ float3 ShaderSurface(
     float dotLV = dot(lightDir, viewDir);
 
     const float f0 = 0.028; // "リアルタイムレンダリング 第4版" 283ページの表より
-    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, SpecularRoughness, f0) * saturate(dotNL);
+    float roughness = GetToksvigRoughness(pow2(SpecularRoughness), normalLength);
+    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, roughness, f0) * saturate(dotNL);
 
     float3 scatterCoeff = SubsurfaceScattering(dotNL, worldPos, normal);
     // scatterCoeff をそのまま使うと曲率が高いときに肌が青っぽくなってしまうので応急処置として dotNL と max を取っておく

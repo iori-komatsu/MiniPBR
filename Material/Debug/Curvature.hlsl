@@ -11,6 +11,7 @@ float3 ShaderSurface(
     float3 viewDir,
     float3 lightDir,
     float3 lightIrradiance,
+    float  normalLength,
     uniform bool selfShadow
 ) {
     return Curvature(worldPos, normal) * SubsurfaceScatteringScale;

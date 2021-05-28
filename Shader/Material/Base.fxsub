@@ -87,6 +87,7 @@ float3 ShaderSurface(
     float3 viewDir,
     float3 lightDir,
     float3 lightIrradiance,
+    float  normalLength,
     uniform bool selfShadow
 );
 
@@ -123,15 +124,18 @@ float4 BaseColor(float2 tex, uniform bool useTexture) {
         );
     }
 
-    float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal) {
+    float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal, out float oNormalLength) {
         float2 normalTex = tex * NormalMapRepeat;
-        float3 tangentNormal = normalize(Remap01To11(tex2D(NormalSamp, normalTex).rgb));
+        float3 tangentNormal = Remap01To11(tex2D(NormalSamp, normalTex).rgb);
+        oNormalLength = length(tangentNormal);
+        tangentNormal = normalize(tangentNormal);
         return TangentNormalToWorldNormal(tangentNormal, worldNormal, worldPos, normalTex);
     }
 
 #else
 
-    inline float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal) {
+    inline float3 GetNormal(float3 worldPos, float2 tex, float3 worldNormal, out float oNormalLength) {
+        oNormalLength = 1.0;
         return worldNormal;
     }
 
@@ -147,13 +151,16 @@ float4 MainPS(
     uniform bool selfShadow
 ) : COLOR0 {
     float4 baseColor = BaseColor(tex, useTexture);
+    float  normalLength;
+    float3 modifiedNormal = GetNormal(worldPos, tex, normalize(normal), normalLength);
     float3 outColor = ShaderSurface(
         worldPos,
         baseColor.rgb,
-        GetNormal(worldPos, tex, normalize(normal)),
+        modifiedNormal,
         normalize(viewDir),
         -LightDir,
         LightIrradiance,
+        normalLength,
         selfShadow
     );
     return float4(outColor, baseColor.a);

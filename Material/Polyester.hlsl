@@ -1,7 +1,7 @@
 static const float ReduceShadow = 0.1;
 static const float Roughness = 0.3;
 static const float Metallic = 0.0;
-static const float Reflectance = 0.5;
+static const float Reflectance = 0.8;
 
 #define USE_NORMAL_MAP
 // https://3dtextures.me/2020/02/11/fabric-polyester-002/
