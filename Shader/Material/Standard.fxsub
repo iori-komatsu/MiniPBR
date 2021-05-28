@@ -28,8 +28,12 @@ float3 ShaderSurface(
     float dotNH = dot(normal, h);
     float dotVH = dot(viewDir, h);
 
-    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, Roughness, F0);
-    float3 fDiffuse = LambertBRDF(baseColor);
+    // パラメータをリマップする
+    float3 diffuseColor = (1.0 - Metallic) * baseColor;
+    float3 f0 = lerp(0.16 * pow2(Reflectance), baseColor, Metallic);
+
+    float3 fSpecular = SpecularBRDF(dotNL, dotNV, dotNH, dotVH, Roughness, f0);
+    float3 fDiffuse = LambertBRDF(diffuseColor);
 
     return (fSpecular + fDiffuse) * saturate(dotNL) * lightIrradiance * lightVisibility
          + AmbientIrradiance * baseColor;
